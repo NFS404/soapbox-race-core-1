@@ -32,27 +32,60 @@ public class LaunchFilter implements ContainerRequestFilter {
 
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException {
-		String hwid = requestContext.getHeaderString("X-HWID");
-		if (parameterBO.getBoolParam("ENABLE_METONATOR_LAUNCHER_PROTECTION")) {
-			String userAgent = requestContext.getHeaderString("User-Agent");
-			String gameLauncherHash = requestContext.getHeaderString("X-GameLauncherHash");
+		if (!isSpecificLaunhcerHeader(requestContext)) {
+			return;
+		}
+		if (!isValidLauncher(requestContext)) {
+			return;
+		}
+		if (isBanned(requestContext)) {
+			return;
+		}
+	}
 
-			if ((userAgent == null || !userAgent.equals("GameLauncher (+https://github.com/SoapboxRaceWorld/GameLauncher_NFSW)"))
-					|| (hwid == null || hwid.trim().isEmpty()) || (gameLauncherHash == null || gameLauncherHash.trim().isEmpty())) {
+	private boolean isSpecificLaunhcerHeader(ContainerRequestContext requestContext) {
+		String gameLauncherHeader = parameterBO.getStrParam("GAME_LAUNCHER_HEADER");
+		if (!gameLauncherHeader.isEmpty()) {
+			String[] split = gameLauncherHeader.split(";");
+			String header = split[0];
+			String value = split[1];
+			String headerString = requestContext.getHeaderString(header);
+			if (headerString == null || !headerString.equals(value)) {
 				LoginStatusVO loginStatusVO = new LoginStatusVO(0L, "", false);
-				loginStatusVO.setDescription("Please use MeTonaTOR's launcher. Or, are you tampering?");
-
+				loginStatusVO.setDescription("Invalid launcher version.");
 				requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity(loginStatusVO).build());
-
-				return;
+				return false;
 			}
 		}
+		return true;
+	}
 
+	private boolean isValidLauncher(ContainerRequestContext requestContext) {
+		if (!parameterBO.getBoolParam("ENABLE_METONATOR_LAUNCHER_PROTECTION")) {
+			return true;
+		}
+		String hwid = requestContext.getHeaderString("X-HWID");
+		String userAgent = requestContext.getHeaderString("User-Agent");
+		String gameLauncherHash = requestContext.getHeaderString("X-GameLauncherHash");
+
+		if ((userAgent == null || !userAgent.equals("GameLauncher (+https://github.com/SoapboxRaceWorld/GameLauncher_NFSW)"))
+				|| (hwid == null || hwid.trim().isEmpty()) || (gameLauncherHash == null || gameLauncherHash.trim().isEmpty())) {
+			LoginStatusVO loginStatusVO = new LoginStatusVO(0L, "", false);
+			loginStatusVO.setDescription("Invalid launcher version.");
+			requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity(loginStatusVO).build());
+			return false;
+		}
+		return true;
+	}
+
+	private boolean isBanned(ContainerRequestContext requestContext) {
+		String hwid = requestContext.getHeaderString("X-HWID");
 		LoginStatusVO checkIsBanned = authenticationBO.checkIsBanned(hwid, sr.getParameter("email"));
 		if (checkIsBanned != null) {
 			requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity(checkIsBanned).build());
-			return;
+			return true;
 		}
+		return false;
 	}
 
 }

@@ -24,8 +24,13 @@ INTO
         'myemail@gmail.com'
     )
     ,
+    (   'GAME_LAUNCHER_HEADER',
+        ''
+    )
+    ,
     (   'GEOIP2_DB_FILE_PATH',
-        'GeoLite2-Country.mmdb')
+        'GeoLite2-Country.mmdb'
+    )
     ,
     (
         'GOOGLE_LB_ENABLED',
@@ -65,6 +70,11 @@ INTO
     (
         'ENABLE_TREASURE_HUNT',
         'false'
+    )
+    ,
+    (
+        'FILE_HASHES_PATH',
+        '/tmp/filehashes.txt'
     )
     ,
     (

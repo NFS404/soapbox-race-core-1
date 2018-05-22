@@ -174,6 +174,10 @@ public class BasketBO {
 		personaDao.update(personaEntity);
 
 		personaBo.changeDefaultCar(personaEntity.getPersonaId(), carSlotEntity.getOwnedCar().getId());
+		if (parameterBO.getBoolParam("DISABLE_ITEM_AFTER_BUY")) {
+			productEntity.setEnabled(false);
+			productDao.update(productEntity);
+		}
 		return CommerceResultStatus.SUCCESS;
 	}
 

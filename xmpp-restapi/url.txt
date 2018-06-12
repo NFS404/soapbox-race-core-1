@@ -1,6 +1,10 @@
 header
 Authorization: key
 
-http://192.168.0.9:9090/plugins/restapi/v1/chatrooms?type=all&search=group
-http://192.168.0.9:9090/plugins/restapi/v1/chatrooms/group.channel.5122493.100/participants
+private races
+GET http://192.168.0.9:9090/plugins/restapi/v1/chatrooms?type=all&search=group
+GET http://192.168.0.9:9090/plugins/restapi/v1/chatrooms/group.channel.5122493.100/participants
 
+mute/unmute
+POST http://192.168.0.9:9090/plugins/restapi/v1/users/sbrw.100/groups/talkers
+DELETE http://192.168.0.9:9090/plugins/restapi/v1/users/sbrw.100/groups/talkers

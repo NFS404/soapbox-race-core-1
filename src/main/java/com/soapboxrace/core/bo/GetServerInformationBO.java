@@ -26,6 +26,11 @@ public class GetServerInformationBO {
 			serverInfoEntity.setRequireTicket(true);
 		}
 		serverInfoEntity.setServerVersion("0.0.7");
+
+		Boolean authservEnabled = parameterBO.getBoolParam("AUTHSERV_ENABLED");
+		String authservEndpoint = parameterBO.getStrParam("AUTHSERV_ENDPOINT");
+		serverInfoEntity.setAuthservEnabled(authservEnabled && authservEndpoint != null && !authservEndpoint.equals(""));
+
 		return serverInfoEntity;
 	}
 

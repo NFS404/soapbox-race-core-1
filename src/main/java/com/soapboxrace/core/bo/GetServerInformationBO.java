@@ -25,6 +25,7 @@ public class GetServerInformationBO {
 		if (ticketToken != null && !ticketToken.equals("null")) {
 			serverInfoEntity.setRequireTicket(true);
 		}
+		serverInfoEntity.setServerVersion("0.0.7");
 
 		Boolean authservEnabled = parameterBO.getBoolParam("AUTHSERV_ENABLED");
 		String authservEndpoint = parameterBO.getStrParam("AUTHSERV_ENDPOINT");

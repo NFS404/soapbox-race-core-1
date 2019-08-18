@@ -143,7 +143,13 @@ public class InventoryBO {
 		inventoryItemEntity.setEntitlementTag(tag);
 		inventoryItemEntity.setHash(hash);
 		inventoryItemEntity.setProductId("DO NOT USE ME");
-		inventoryItemEntity.setRemainingUseCount(250);
+		// "No powerups" switch - only for new personas, needs a SQL script
+		if (!parameterBO.getBoolParam("POWERUPS_ENABLED")) {
+			inventoryItemEntity.setRemainingUseCount(0);
+		}
+		if (parameterBO.getBoolParam("POWERUPS_ENABLED")) {
+			inventoryItemEntity.setRemainingUseCount(99);
+		}
 		inventoryItemEntity.setResalePrice(0.00f);
 		inventoryItemEntity.setStatus("ACTIVE");
 		inventoryItemEntity.setStringHash(strHash);
@@ -253,7 +259,7 @@ public class InventoryBO {
 			performancePartTransListTmp.removeAll(performancePartTransDB);
 			performancePartTransListTmp.removeAll(performancePartsFromBasket);
 			for (PerformancePartTrans performancePartTransTmp : performancePartTransListTmp) {
-				System.out.println("added from inventory: " + performancePartTransTmp.getPerformancePartAttribHash());
+//				System.out.println("added from inventory: " + performancePartTransTmp.getPerformancePartAttribHash());
 				deletePart(defaultCarEntity.getPersona().getPersonaId(), performancePartTransTmp.getPerformancePartAttribHash());
 			}
 			break;
@@ -265,7 +271,7 @@ public class InventoryBO {
 			skillModPartTransListTmp.removeAll(skillModPartTransDB);
 			skillModPartTransListTmp.removeAll(skillModPartsFromBasket);
 			for (SkillModPartTrans skillModPartTransTmp : skillModPartTransListTmp) {
-				System.out.println("added from inventory: " + skillModPartTransTmp.getSkillModPartAttribHash());
+//				System.out.println("added from inventory: " + skillModPartTransTmp.getSkillModPartAttribHash());
 				deletePart(defaultCarEntity.getPersona().getPersonaId(), skillModPartTransTmp.getSkillModPartAttribHash());
 			}
 			break;
@@ -277,7 +283,7 @@ public class InventoryBO {
 			visualPartTransListTmp.removeAll(visualPartTransDB);
 			visualPartTransListTmp.removeAll(visualPartsFromBasket);
 			for (VisualPartTrans visualPartTransTmp : visualPartTransListTmp) {
-				System.out.println("added from inventory: " + visualPartTransTmp.getPartHash());
+//				System.out.println("added from inventory: " + visualPartTransTmp.getPartHash());
 				deletePart(defaultCarEntity.getPersona().getPersonaId(), visualPartTransTmp.getPartHash());
 			}
 			break;

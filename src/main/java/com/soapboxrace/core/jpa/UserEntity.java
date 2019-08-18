@@ -1,5 +1,6 @@
 package com.soapboxrace.core.jpa;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,11 +15,12 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "USER")
+@Table(name = "USER_SB")
 @NamedQueries({ //
 		@NamedQuery(name = "UserEntity.findAll", query = "SELECT obj FROM UserEntity obj"),
-		@NamedQuery(name = "UserEntity.findByEmail", query = "SELECT obj FROM UserEntity obj WHERE obj.email = :email"), //
-		@NamedQuery(name = "UserEntity.findByAuthservUUID", query = "SELECT obj FROM UserEntity obj WHERE obj.authservUUID = :uuid")
+		@NamedQuery(name = "UserEntity.findByEmail", query = "SELECT obj FROM UserEntity obj WHERE obj.email = :email"),
+		@NamedQuery(name = "UserEntity.findByUserId", query = "SELECT obj FROM UserEntity obj WHERE obj.id = :id") //
+
 })
 public class UserEntity {
 
@@ -46,6 +48,9 @@ public class UserEntity {
 
 	@Column(name = "premium")
 	private boolean premium;
+	
+	@Column(name = "premiumDate")
+	private LocalDate premiumDate;
 
 	@Column(name = "isAdmin")
 	private boolean isAdmin;
@@ -55,9 +60,6 @@ public class UserEntity {
 
 	@Column(name = "lastLogin")
 	private LocalDateTime lastLogin;
-
-	@Column(name = "authservUUID")
-	private String authservUUID;
 
 	public void setId(Long id) {
 		this.id = id;
@@ -110,6 +112,14 @@ public class UserEntity {
 	public void setPremium(boolean premium) {
 		this.premium = premium;
 	}
+	
+	public LocalDate getPremiumDate() {
+		return premiumDate;
+	}
+	
+	public void setPremiumDate(LocalDate premiumDate) {
+		this.premiumDate = premiumDate;
+	}
 
 	public boolean ownsPersona(Long id) {
 		return this.listOfProfile.stream().anyMatch(p -> p.getPersonaId().equals(id));
@@ -145,14 +155,6 @@ public class UserEntity {
 
 	public void setGameHardwareHash(String gameHardwareHash) {
 		this.gameHardwareHash = gameHardwareHash;
-	}
-
-	public String getAuthservUUID() {
-		return authservUUID;
-	}
-
-	public void setAuthservUUID(String authservUUID) {
-		this.authservUUID = authservUUID;
 	}
 
 }

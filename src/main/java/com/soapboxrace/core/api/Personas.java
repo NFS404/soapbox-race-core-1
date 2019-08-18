@@ -23,6 +23,7 @@ import com.soapboxrace.core.bo.PersonaBO;
 import com.soapboxrace.core.bo.TokenSessionBO;
 import com.soapboxrace.core.bo.util.CommerceOp;
 import com.soapboxrace.core.bo.util.OwnedCarConverter;
+import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.jpa.CarSlotEntity;
 import com.soapboxrace.core.jpa.OwnedCarEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
@@ -67,6 +68,9 @@ public class Personas {
 
 	@EJB
 	private InventoryBO inventoryBO;
+	
+	@EJB
+	private PersonaDAO personaDao;
 
 	@POST
 	@Secured
@@ -151,13 +155,16 @@ public class Personas {
 	}
 
 	@GET
-	@Secured
 	@Path("/{personaId}/carslots")
 	@Produces(MediaType.APPLICATION_XML)
 	public CarSlotInfoTrans carslots(@PathParam(value = "personaId") Long personaId, @HeaderParam("securityToken") String securityToken) {
 		sessionBO.verifyPersona(securityToken, personaId);
 
 		PersonaEntity personaEntity = personaBO.getPersonaById(personaId);
+		if (!personaEntity.getUser().isPremium() && personaEntity.getCarSlots() > parameterBO.getIntParam("MAX_CAR_SLOTS_FREE")) {
+			personaEntity.setCarSlots(parameterBO.getIntParam("MAX_CAR_SLOTS_FREE"));
+			personaDao.update(personaEntity);
+		}
 		List<CarSlotEntity> personasCar = basketBO.getPersonasCar(personaId);
 		ArrayOfOwnedCarTrans arrayOfOwnedCarTrans = new ArrayOfOwnedCarTrans();
 		for (CarSlotEntity carSlotEntity : personasCar) {
@@ -169,7 +176,7 @@ public class Personas {
 		carSlotInfoTrans.setCarsOwnedByPersona(arrayOfOwnedCarTrans);
 		carSlotInfoTrans.setDefaultOwnedCarIndex(personaEntity.getCurCarIndex());
 		carSlotInfoTrans.setObtainableSlots(new ArrayOfProductTrans());
-		int carlimit = parameterBO.getCarLimit(securityToken);
+		int carlimit = personaEntity.getCarSlots();
 		carSlotInfoTrans.setOwnedCarSlotsCount(carlimit);
 		ArrayOfProductTrans arrayOfProductTrans = new ArrayOfProductTrans();
 		ProductTrans productTrans = new ProductTrans();
@@ -196,7 +203,6 @@ public class Personas {
 	}
 
 	@GET
-	@Secured
 	@Path("/inventory/objects")
 	@Produces(MediaType.APPLICATION_XML)
 	public InventoryTrans inventoryObjects(@HeaderParam("securityToken") String securityToken) {

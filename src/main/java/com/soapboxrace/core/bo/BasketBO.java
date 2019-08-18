@@ -1,6 +1,7 @@
 package com.soapboxrace.core.bo;
 
 import java.util.List;
+import java.util.Random;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -96,6 +97,9 @@ public class BasketBO {
 		if (!parameterBO.getBoolParam("ENABLE_ECONOMY")) {
 			return CommerceResultStatus.FAIL_INSUFFICIENT_FUNDS;
 		}
+		if (!parameterBO.getBoolParam("ENABLE_POWERUP_PURCHASE")) {
+			return CommerceResultStatus.FAIL_INVALID_BASKET;
+		}
 		ProductEntity powerupProduct = productDao.findByProductId(productId);
 		InventoryEntity inventoryEntity = inventoryDao.findByPersonaId(personaEntity.getPersonaId());
 
@@ -142,7 +146,7 @@ public class BasketBO {
 	}
 
 	public CommerceResultStatus buyCar(String productId, PersonaEntity personaEntity, String securityToken) {
-		if (getPersonaCarCount(personaEntity.getPersonaId()) >= parameterBO.getCarLimit(securityToken)) {
+		if (getPersonaCarCount(personaEntity.getPersonaId()) >= personaEntity.getCarSlots()) {
 			return CommerceResultStatus.FAIL_INSUFFICIENT_CAR_SLOTS;
 		}
 
@@ -150,7 +154,7 @@ public class BasketBO {
 		if (productEntity == null || personaEntity.getCash() < productEntity.getPrice()) {
 			return CommerceResultStatus.FAIL_INSUFFICIENT_FUNDS;
 		}
-
+		
 		OwnedCarTrans ownedCarTrans = getCar(productId);
 		ownedCarTrans.setId(0L);
 		ownedCarTrans.getCustomCar().setId(0);

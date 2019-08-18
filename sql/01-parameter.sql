@@ -4,11 +4,18 @@ INTO
     (
         'ANNOUNCEMENT_DOMAIN',
         'http://i.imgur.com/'
-    ),
+    )
+    ,
     (
         'CASH_REWARD_MULTIPLIER',
         '1'
-    ),
+    )
+    ,
+    (
+        'CHAT_ONLINECOUNT',
+        'false'
+    )
+    ,
     (
         'DISABLE_ITEM_AFTER_BUY',
         'false'
@@ -60,6 +67,11 @@ INTO
     (
         'ENABLE_POWERUP_DECREASE',
         'false'
+    )
+    ,
+    (
+        'ENABLE_POWERUP_PURCHASE',
+        'true'
     )
     ,
     (
@@ -135,6 +147,11 @@ INTO
     (
         'PROMO_CODE_TOKEN',
         '12345678'
+    )
+    ,
+    (
+        'POWERUPS_ENABLED',
+        'true'
     )
     ,
     (

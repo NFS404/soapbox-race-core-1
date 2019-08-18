@@ -4,4 +4,4 @@ A SoapBox Race World core fork for World Evolved v2 server.
 
 ## Notes:
 
-* Currently i don't have a permissions to upload Achievement system. Use ApexSBRW's one instead.
+* Currently i don't have a permissions to upload Achievement system (made by Nilzao). Use ApexSBRW's one instead.

@@ -1,7 +1,11 @@
 package com.soapboxrace.core.bo;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -33,8 +37,13 @@ public class TokenSessionBO {
 	@EJB
 	private OnlineUsersBO onlineUsersBO;
 
+	private static Map<String, TokenSessionEntity> activePersonas = new HashMap<>(300);
+
 	public boolean verifyToken(Long userId, String securityToken) {
-		TokenSessionEntity tokenSessionEntity = tokenDAO.findById(securityToken);
+		TokenSessionEntity tokenSessionEntity = activePersonas.get(securityToken);
+		if (tokenSessionEntity == null) {
+			tokenSessionEntity = tokenDAO.findBySecurityToken(securityToken);
+		}
 		if (tokenSessionEntity == null || !tokenSessionEntity.getUserId().equals(userId)) {
 			return false;
 		}
@@ -43,34 +52,43 @@ public class TokenSessionBO {
 		if (time > tokenTime) {
 			return false;
 		}
-		tokenSessionEntity.setExpirationDate(getMinutes(3));
+		tokenSessionEntity.setExpirationDate(getMinutes(6));
 		tokenDAO.update(tokenSessionEntity);
+		// activePersonas.put(securityToken, tokenSessionEntity);
 		return true;
 	}
 
-	public void updateToken(String securityToken) {
-		TokenSessionEntity tokenSessionEntity = tokenDAO.findById(securityToken);
-		Date expirationDate = getMinutes(3);
-		tokenSessionEntity.setExpirationDate(expirationDate);
-		tokenDAO.update(tokenSessionEntity);
-	}
-
 	public String createToken(Long userId, String clientHostName) {
-		TokenSessionEntity tokenSessionEntity = new TokenSessionEntity();
-		Date expirationDate = getMinutes(15);
-		tokenSessionEntity.setExpirationDate(expirationDate);
+		TokenSessionEntity tokenSessionEntity = null;
+		try {
+			tokenSessionEntity = tokenDAO.findByUserId(userId);
+		} catch (Exception e) {
+			// not found
+		}
 		String randomUUID = UUIDGen.getRandomUUID();
-		tokenSessionEntity.setSecurityToken(randomUUID);
-		tokenSessionEntity.setUserId(userId);
 		UserEntity userEntity = userDAO.findById(userId);
-		tokenSessionEntity.setPremium(userEntity.isPremium());
-		tokenSessionEntity.setClientHostIp(clientHostName);
-		tokenDAO.insert(tokenSessionEntity);
+		Date expirationDate = getMinutes(15);
+		if (tokenSessionEntity == null) {
+			tokenSessionEntity = new TokenSessionEntity();
+			tokenSessionEntity.setExpirationDate(expirationDate);
+			tokenSessionEntity.setSecurityToken(randomUUID);
+			tokenSessionEntity.setUserId(userId);
+			tokenSessionEntity.setPremium(userEntity.isPremium());
+			tokenSessionEntity.setClientHostIp(clientHostName);
+			tokenDAO.insert(tokenSessionEntity);
+		} else {
+			tokenSessionEntity.setExpirationDate(expirationDate);
+			tokenSessionEntity.setSecurityToken(randomUUID);
+			tokenSessionEntity.setUserId(userId);
+			tokenSessionEntity.setPremium(userEntity.isPremium());
+			tokenSessionEntity.setClientHostIp(clientHostName);
+			tokenDAO.update(tokenSessionEntity);
+		}
 		return randomUUID;
 	}
 
 	public boolean verifyPersona(String securityToken, Long personaId) {
-		TokenSessionEntity tokenSession = tokenDAO.findById(securityToken);
+		TokenSessionEntity tokenSession = tokenDAO.findBySecurityToken(securityToken);
 		if (tokenSession == null) {
 			throw new NotAuthorizedException("Invalid session...");
 		}
@@ -80,10 +98,6 @@ public class TokenSessionBO {
 			throw new NotAuthorizedException("Persona is not owned by user");
 		}
 		return true;
-	}
-
-	public void deleteByUserId(Long userId) {
-		tokenDAO.deleteByUserId(userId);
 	}
 
 	private Date getMinutes(int minutes) {
@@ -122,6 +136,21 @@ public class TokenSessionBO {
 			if (userEntity != null) {
 				int numberOfUsersOnlineNow = onlineUsersBO.getNumberOfUsersOnlineNow();
 				int maxOlinePayers = parameterBO.getIntParam("MAX_ONLINE_PLAYERS");
+				
+				if (userEntity.isPremium()) {
+				    LocalDate premiumDate = userEntity.getPremiumDate();
+				    LocalDate nowDate = LocalDate.now();
+				
+				    if (userEntity.getPremiumDate() != null) {
+				    Integer days = (int) ChronoUnit.DAYS.between(nowDate, premiumDate.plusDays(186));
+				      if (days <= 0) {
+				    	  userEntity.setPremium(false);
+				    	  userEntity.setPremiumDate(null);
+				  		  userDAO.update(userEntity);
+				        }
+				      }
+				  }
+				
 				if (numberOfUsersOnlineNow >= maxOlinePayers && !userEntity.isPremium()) {
 					loginStatusVO.setDescription("SERVER FULL");
 					return loginStatusVO;
@@ -143,7 +172,6 @@ public class TokenSessionBO {
 					userEntity.setLastLogin(LocalDateTime.now());
 					userDAO.update(userEntity);
 					Long userId = userEntity.getId();
-					deleteByUserId(userId);
 					String randomUUID = createToken(userId, null);
 					loginStatusVO = new LoginStatusVO(userId, randomUUID, true);
 					loginStatusVO.setDescription("");
@@ -156,51 +184,16 @@ public class TokenSessionBO {
 		return loginStatusVO;
 	}
 
-	public LoginStatusVO loginAuthserv(String uuid, HttpServletRequest httpRequest) {
-		LoginStatusVO loginStatusVO = checkGeoIp(httpRequest.getRemoteAddr());
-		if (!loginStatusVO.isLoginOk()) {
-			return loginStatusVO;
-		}
-		loginStatusVO = new LoginStatusVO(0L, "", false);
-
-		UserEntity userEntity = userDAO.findByAuthservUUID(uuid);
-		int numberOfUsersOnlineNow = onlineUsersBO.getNumberOfUsersOnlineNow();
-		int maxOnlinePayers = parameterBO.getIntParam("MAX_ONLINE_PLAYERS");
-		if (numberOfUsersOnlineNow >= maxOnlinePayers && !userEntity.isPremium()) {
-			loginStatusVO.setDescription("SERVER FULL");
-			return loginStatusVO;
-		}
-		if (userEntity.getHwid() == null || userEntity.getHwid().trim().isEmpty()) {
-			userEntity.setHwid(httpRequest.getHeader("X-HWID"));
-		}
-
-		if (userEntity.getIpAddress() == null || userEntity.getIpAddress().trim().isEmpty()) {
-			String forwardedFor;
-			if ((forwardedFor = httpRequest.getHeader("X-Forwarded-For")) != null && parameterBO.getBoolParam("USE_FORWARDED_FOR")) {
-				userEntity.setIpAddress(parameterBO.getBoolParam("GOOGLE_LB_ENABLED") ? forwardedFor.split(",")[0] : forwardedFor);
-			} else {
-				userEntity.setIpAddress(httpRequest.getRemoteAddr());
-			}
-		}
-
-		userEntity.setLastLogin(LocalDateTime.now());
-		userDAO.update(userEntity);
-		Long userId = userEntity.getId();
-		deleteByUserId(userId);
-		String randomUUID = createToken(userId, null);
-		loginStatusVO = new LoginStatusVO(userId, randomUUID, true);
-		loginStatusVO.setDescription("");
-
-		return loginStatusVO;
-	}
-
 	public Long getActivePersonaId(String securityToken) {
-		TokenSessionEntity tokenSessionEntity = tokenDAO.findById(securityToken);
+		TokenSessionEntity tokenSessionEntity = activePersonas.get(securityToken);
+		if (tokenSessionEntity == null) {
+			tokenSessionEntity = tokenDAO.findBySecurityToken(securityToken);
+		}
 		return tokenSessionEntity.getActivePersonaId();
 	}
 
 	public void setActivePersonaId(String securityToken, Long personaId, Boolean isLogout) {
-		TokenSessionEntity tokenSessionEntity = tokenDAO.findById(securityToken);
+		TokenSessionEntity tokenSessionEntity = tokenDAO.findBySecurityToken(securityToken);
 
 		if (!isLogout) {
 			if (!userDAO.findById(tokenSessionEntity.getUserId()).ownsPersona(personaId)) {
@@ -209,27 +202,31 @@ public class TokenSessionBO {
 		}
 
 		tokenSessionEntity.setActivePersonaId(personaId);
+		tokenSessionEntity.setIsLoggedIn(!isLogout);
+		tokenDAO.updatePersonaPresence(personaId, 1);
+		// activePersonas.put(securityToken, tokenSessionEntity);
 		tokenDAO.update(tokenSessionEntity);
 	}
 
 	public String getActiveRelayCryptoTicket(String securityToken) {
-		TokenSessionEntity tokenSessionEntity = tokenDAO.findById(securityToken);
+		TokenSessionEntity tokenSessionEntity = tokenDAO.findBySecurityToken(securityToken);
 		return tokenSessionEntity.getRelayCryptoTicket();
 	}
 
 	public Long getActiveLobbyId(String securityToken) {
-		TokenSessionEntity tokenSessionEntity = tokenDAO.findById(securityToken);
+		TokenSessionEntity tokenSessionEntity = tokenDAO.findBySecurityToken(securityToken);
 		return tokenSessionEntity.getActiveLobbyId();
 	}
 
 	public void setActiveLobbyId(String securityToken, Long lobbyId) {
-		TokenSessionEntity tokenSessionEntity = tokenDAO.findById(securityToken);
+		TokenSessionEntity tokenSessionEntity = tokenDAO.findBySecurityToken(securityToken);
 		tokenSessionEntity.setActiveLobbyId(lobbyId);
+		// activePersonas.put(securityToken, tokenSessionEntity);
 		tokenDAO.update(tokenSessionEntity);
 	}
 
 	public boolean isPremium(String securityToken) {
-		return tokenDAO.findById(securityToken).isPremium();
+		return tokenDAO.findBySecurityToken(securityToken).isPremium();
 	}
 
 	public boolean isAdmin(String securityToken) {
@@ -237,6 +234,10 @@ public class TokenSessionBO {
 	}
 
 	public UserEntity getUser(String securityToken) {
-		return userDAO.findById(tokenDAO.findById(securityToken).getUserId());
+		return userDAO.findById(tokenDAO.findBySecurityToken(securityToken).getUserId());
+	}
+
+	public void updatePersonaPresence(Long personaId, Integer personaPresence) {
+		tokenDAO.updatePersonaPresence(personaId, personaPresence);
 	}
 }

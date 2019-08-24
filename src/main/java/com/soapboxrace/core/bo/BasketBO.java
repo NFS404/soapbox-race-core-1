@@ -16,6 +16,7 @@ import com.soapboxrace.core.dao.OwnedCarDAO;
 import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.dao.ProductDAO;
 import com.soapboxrace.core.dao.TokenSessionDAO;
+import com.soapboxrace.core.dao.TreasureHuntDAO;
 import com.soapboxrace.core.jpa.BasketDefinitionEntity;
 import com.soapboxrace.core.jpa.CarSlotEntity;
 import com.soapboxrace.core.jpa.CustomCarEntity;
@@ -24,6 +25,7 @@ import com.soapboxrace.core.jpa.InventoryItemEntity;
 import com.soapboxrace.core.jpa.OwnedCarEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.ProductEntity;
+import com.soapboxrace.core.jpa.TreasureHuntEntity;
 import com.soapboxrace.jaxb.http.CommerceResultStatus;
 import com.soapboxrace.jaxb.http.OwnedCarTrans;
 import com.soapboxrace.jaxb.util.UnmarshalXML;
@@ -62,6 +64,9 @@ public class BasketBO {
 	private TokenSessionBO tokenSessionBO;
 
 	@EJB
+    private TreasureHuntDAO treasureHuntDAO;
+	
+	@EJB
 	private InventoryDAO inventoryDao;
 
 	@EJB
@@ -92,6 +97,25 @@ public class BasketBO {
 		carSlotDAO.update(defaultCarEntity);
 		return CommerceResultStatus.SUCCESS;
 	}
+	
+	public CommerceResultStatus restoreTreasureHunt(String productId, PersonaEntity personaEntity) {
+        int price = (int) productDao.findByProductId(productId).getPrice();
+
+        if(personaEntity.getCash() < price) {
+            return CommerceResultStatus.FAIL_LOCKED_PRODUCT_NOT_ACCESSIBLE_TO_THIS_USER;
+        }
+
+        if (parameterBO.getBoolParam("ENABLE_ECONOMY")) {
+            personaEntity.setCash(personaEntity.getCash() - price);
+        }
+
+        Long personaId = personaEntity.getPersonaId();
+        TreasureHuntEntity treasureHuntEntity = treasureHuntDAO.findById(personaId);
+        treasureHuntEntity.setIsStreakBroken(false);
+        treasureHuntDAO.update(treasureHuntEntity);
+
+        return CommerceResultStatus.SUCCESS;
+    }
 
 	public CommerceResultStatus buyPowerups(String productId, PersonaEntity personaEntity) {
 		if (!parameterBO.getBoolParam("ENABLE_ECONOMY")) {

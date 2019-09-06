@@ -56,7 +56,7 @@ public class EventsBO {
 		LocalDate nowDate = LocalDate.now();
 		if (!thDate.equals(nowDate)) {
 			Integer days = (int) ChronoUnit.DAYS.between(thDate, nowDate);
-			if (days >= 2 || treasureHuntEntity.getCoinsCollected() != 32767) {
+			if (days >= 2 || treasureHuntEntity.getIsStreakBroken() || (days >= 1 && treasureHuntEntity.getCoinsCollected() != 2147483647)) {
 				return createNewTreasureHunt(treasureHuntEntity, true);
 			} else {
 				return createNewTreasureHunt(treasureHuntEntity, false);
@@ -96,10 +96,12 @@ public class EventsBO {
 		} else {
 			treasureHuntEntity.setStreak(treasureHuntEntity.getStreak() + 1);
 			treasureHuntEntity.setSeed(new Random().nextInt());
+			// FIXME - Player gets a new streak day for achievement, even if streak will got a reset
 			achievementsBO.applyDailyTreasureHuntAchievement(treasureHuntEntity);
 		}
 		treasureHuntEntity.setThDate(LocalDate.now());
-		treasureHuntEntity.setCoinsCollected(0);
+		// 2147483647 - 31 coins
+		treasureHuntEntity.setCoinsCollected(2147483647);
 		treasureHuntEntity.setNumCoins(0);
 		treasureHuntDao.update(treasureHuntEntity);
 		return MarshalXML.marshal(getTreasureHuntAccolades(activePersonaId, treasureHuntEntity));

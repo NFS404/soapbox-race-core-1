@@ -152,8 +152,8 @@ public class BasketBO {
 
 		int newUsageCount = item.getRemainingUseCount() + 15;
 
-		if (newUsageCount > 250)
-			newUsageCount = 250;
+		if (newUsageCount > 99)
+			newUsageCount = 99;
 
 		if (item.getRemainingUseCount() != newUsageCount)
 			upgradedAmount = true;

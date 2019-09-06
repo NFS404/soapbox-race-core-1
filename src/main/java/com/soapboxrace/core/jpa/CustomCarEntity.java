@@ -32,6 +32,7 @@ public class CustomCarEntity {
 	private float rideHeightDrop;
 	private int skillModSlotCount;
 	private int version;
+	private int raceFilter;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ownedCarId", referencedColumnName = "ID", foreignKey = @ForeignKey(name = "FK_CUSTOMCAR_OWNEDCAR"))
@@ -194,6 +195,14 @@ public class CustomCarEntity {
 
 	public void setOwnedCar(OwnedCarEntity ownedCar) {
 		this.ownedCar = ownedCar;
+	}
+	
+	public int getRaceFilter() {
+		return raceFilter;
+	}
+
+	public void setRaceFilter(int raceFilter) {
+		this.raceFilter = raceFilter;
 	}
 
 }

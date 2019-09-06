@@ -32,6 +32,7 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="SkillModParts" type="{}ArrayOfSkillModPartTrans" minOccurs="0"/>
  *         &lt;element name="SkillModSlotCount" type="{http://www.w3.org/2001/XMLSchema}int"/>
  *         &lt;element name="Version" type="{http://www.w3.org/2001/XMLSchema}int"/>
+ *         &lt;element name="RaceFilter" type="{http://www.w3.org/2001/XMLSchema}int"/>
  *         &lt;element name="Vinyls" type="{}ArrayOfCustomVinylTrans" minOccurs="0"/>
  *         &lt;element name="VisualParts" type="{}ArrayOfVisualPartTrans" minOccurs="0"/>
  *       &lt;/sequence>
@@ -59,6 +60,7 @@ import javax.xml.bind.annotation.XmlType;
     "skillModParts",
     "skillModSlotCount",
     "version",
+    "raceFilter",
     "vinyls",
     "visualParts"
 })
@@ -94,6 +96,8 @@ public class CustomCarTrans {
     protected int skillModSlotCount;
     @XmlElement(name = "Version")
     protected int version;
+    @XmlElement(name = "RaceFilter")
+    protected int raceFilter;
     @XmlElement(name = "Vinyls")
     protected ArrayOfCustomVinylTrans vinyls;
     @XmlElement(name = "VisualParts")
@@ -369,6 +373,22 @@ public class CustomCarTrans {
      */
     public void setVersion(int value) {
         this.version = value;
+    }
+    
+    /**
+     * Gets the value of the race filter property.
+     * 
+     */
+    public int getRaceFilter() {
+    	return raceFilter;
+    }
+
+    /**
+     * Sets the value of the race filter property.
+     * 
+     */
+    public void setRaceFilter(int value) {
+        this.raceFilter = value;
     }
 
     /**

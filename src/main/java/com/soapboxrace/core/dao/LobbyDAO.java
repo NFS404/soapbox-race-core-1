@@ -27,6 +27,83 @@ public class LobbyDAO extends BaseDAO<LobbyEntity> {
 		return lobbyEntity;
 	}
 
+	public List<LobbyEntity> findAllMPLobbies(int carClassHash, String carDivision, int raceFilter) {
+		Date dateNow = new Date();
+		Date datePast = new Date(dateNow.getTime() - 35000);
+
+		if (raceFilter == 1) {
+			TypedQuery<LobbyEntity> queryC = entityManager.createNamedQuery("LobbyEntity.findMPLobbiesP2PClasses", LobbyEntity.class);
+			queryC.setParameter("dateTime1", datePast);
+			queryC.setParameter("dateTime2", dateNow);
+			queryC.setParameter("carClassHash", carClassHash);
+			if (queryC.getResultList().isEmpty()) {
+				TypedQuery<LobbyEntity> queryO = entityManager.createNamedQuery("LobbyEntity.findMPLobbiesP2POpen", LobbyEntity.class);
+				queryO.setParameter("dateTime1", datePast);
+				queryO.setParameter("dateTime2", dateNow);
+				queryO.setParameter("carDivision", carDivision);
+				return queryO.getResultList();
+			}
+			return queryC.getResultList();
+		}
+		if (raceFilter == 2) {
+			TypedQuery<LobbyEntity> queryC = entityManager.createNamedQuery("LobbyEntity.findMPLobbiesDragClasses", LobbyEntity.class);
+			queryC.setParameter("dateTime1", datePast);
+			queryC.setParameter("dateTime2", dateNow);
+			queryC.setParameter("carClassHash", carClassHash);
+			if (queryC.getResultList().isEmpty()) {
+				TypedQuery<LobbyEntity> queryO = entityManager.createNamedQuery("LobbyEntity.findMPLobbiesDragOpen", LobbyEntity.class);
+				queryO.setParameter("dateTime1", datePast);
+				queryO.setParameter("dateTime2", dateNow);
+				queryO.setParameter("carDivision", carDivision);
+				return queryO.getResultList();
+			}
+			return queryC.getResultList();
+		}
+		if (raceFilter == 3) {
+			TypedQuery<LobbyEntity> queryC = entityManager.createNamedQuery("LobbyEntity.findMPLobbiesRaceClasses", LobbyEntity.class);
+			queryC.setParameter("dateTime1", datePast);
+			queryC.setParameter("dateTime2", dateNow);
+			queryC.setParameter("carClassHash", carClassHash);
+			if (queryC.getResultList().isEmpty()) {
+				TypedQuery<LobbyEntity> queryO = entityManager.createNamedQuery("LobbyEntity.findMPLobbiesRaceOpen", LobbyEntity.class);
+				queryO.setParameter("dateTime1", datePast);
+				queryO.setParameter("dateTime2", dateNow);
+				queryO.setParameter("carDivision", carDivision);
+				return queryO.getResultList();
+			}
+			return queryC.getResultList();
+		}
+		if (raceFilter == 4) {
+			TypedQuery<LobbyEntity> queryC = entityManager.createNamedQuery("LobbyEntity.findMPLobbiesPursuitClasses", LobbyEntity.class);
+			queryC.setParameter("dateTime1", datePast);
+			queryC.setParameter("dateTime2", dateNow);
+			queryC.setParameter("carClassHash", carClassHash);
+			if (queryC.getResultList().isEmpty()) {
+				TypedQuery<LobbyEntity> queryO = entityManager.createNamedQuery("LobbyEntity.findMPLobbiesPursuitOpen", LobbyEntity.class);
+				queryO.setParameter("dateTime1", datePast);
+				queryO.setParameter("dateTime2", dateNow);
+				queryO.setParameter("carDivision", carDivision);
+				return queryO.getResultList();
+			}
+			return queryC.getResultList();
+		}
+		else {
+			TypedQuery<LobbyEntity> queryC = entityManager.createNamedQuery("LobbyEntity.findAllMPLobbiesClasses", LobbyEntity.class);
+			queryC.setParameter("dateTime1", datePast);
+			queryC.setParameter("dateTime2", dateNow);
+			queryC.setParameter("carClassHash", carClassHash);
+			if (queryC.getResultList().isEmpty()) {
+				TypedQuery<LobbyEntity> queryO = entityManager.createNamedQuery("LobbyEntity.findAllMPLobbiesOpen", LobbyEntity.class);
+				queryO.setParameter("dateTime1", datePast);
+				queryO.setParameter("dateTime2", dateNow);
+				queryO.setParameter("carDivision", carDivision);
+				return queryO.getResultList();
+			}
+			return queryC.getResultList();
+		}
+
+	}
+	
 	public List<LobbyEntity> findAllOpen(int carClassHash) {
 		Date dateNow = new Date();
 		Date datePast = new Date(dateNow.getTime() - 35000);

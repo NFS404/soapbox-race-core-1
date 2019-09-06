@@ -1,7 +1,6 @@
 package com.soapboxrace.core.bo;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -20,11 +19,14 @@ import com.soapboxrace.core.jpa.EventEntity;
 import com.soapboxrace.core.jpa.EventSessionEntity;
 import com.soapboxrace.core.jpa.LobbyEntity;
 import com.soapboxrace.core.jpa.LobbyEntrantEntity;
+import com.soapboxrace.core.jpa.PerformancePartEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.TokenSessionEntity;
+import com.soapboxrace.core.xmpp.OpenFireRestApiCli;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
 import com.soapboxrace.core.xmpp.XmppLobby;
 import com.soapboxrace.jaxb.http.ArrayOfLobbyEntrantInfo;
+import com.soapboxrace.jaxb.http.ArrayOfPerformancePartTrans;
 import com.soapboxrace.jaxb.http.Entrants;
 import com.soapboxrace.jaxb.http.LobbyCountdown;
 import com.soapboxrace.jaxb.http.LobbyEntrantAdded;
@@ -32,6 +34,7 @@ import com.soapboxrace.jaxb.http.LobbyEntrantInfo;
 import com.soapboxrace.jaxb.http.LobbyEntrantRemoved;
 import com.soapboxrace.jaxb.http.LobbyEntrantState;
 import com.soapboxrace.jaxb.http.LobbyInfo;
+import com.soapboxrace.jaxb.http.PerformancePartTrans;
 import com.soapboxrace.jaxb.xmpp.ChallengeType;
 import com.soapboxrace.jaxb.xmpp.XMPP_CryptoTicketsType;
 import com.soapboxrace.jaxb.xmpp.XMPP_EventSessionType;
@@ -66,27 +69,44 @@ public class LobbyBO {
 	@EJB
 	private OpenFireSoapBoxCli openFireSoapBoxCli;
 
-	public void joinFastLobby(Long personaId, int carClassHash) {
-		List<LobbyEntity> lobbys = lobbyDao.findAllOpen(carClassHash);
+	@EJB
+	private OpenFireRestApiCli openFireRestApiCli;
+
+	// Checking the division of selected car - Hypercycle
+	public String carDivision(int carClassHash) {
+		if (carClassHash == 872416321 || carClassHash == 415909161 || carClassHash == 1866825865) {
+			return "edc";
+		}
+		if (carClassHash == 0) {
+			return "npc";
+		}
+		return "bas";
+	}
+		
+	public void joinFastLobby(Long personaId, int carClassHash, String carDivision, int raceFilter) {
+		// List<LobbyEntity> lobbys = lobbyDao.findAllOpen(carClassHash);
+		List<LobbyEntity> lobbys = lobbyDao.findAllMPLobbies(carClassHash, carDivision, raceFilter);
 		PersonaEntity personaEntity = personaDao.findById(personaId);
 		joinLobby(personaEntity, lobbys);
 	}
 
-	public void joinQueueEvent(Long personaId, int eventId) {
+	public void joinQueueEvent(Long personaId, int eventId, int carClassHash) {
 		PersonaEntity personaEntity = personaDao.findById(personaId);
+		String carDivision = this.carDivision(carClassHash);
 		List<LobbyEntity> lobbys = lobbyDao.findByEventStarted(eventId);
 		if (lobbys.size() == 0) {
-			createLobby(personaEntity, eventId, false);
+			createLobby(personaEntity, eventId, false, carDivision);
 		} else {
 			joinLobby(personaEntity, lobbys);
 		}
 	}
 
-	public void createPrivateLobby(Long personaId, int eventId) {
-		List<Long> listOfPersona = new ArrayList<>();
+	public void createPrivateLobby(Long personaId, int eventId, int carClassHash) {
+		List<Long> listOfPersona = openFireRestApiCli.getAllPersonaByGroup(personaId);
 		if (!listOfPersona.isEmpty()) {
 			PersonaEntity personaEntity = personaDao.findById(personaId);
-			createLobby(personaEntity, eventId, true);
+			String carDivision = this.carDivision(carClassHash);
+			createLobby(personaEntity, eventId, true, carDivision);
 
 			LobbyEntity lobbys = lobbyDao.findByEventAndPersona(eventId, personaId);
 			if (lobbys != null) {
@@ -107,7 +127,7 @@ public class LobbyBO {
 		}
 	}
 
-	private void createLobby(PersonaEntity personaEntity, int eventId, Boolean isPrivate) {
+	private void createLobby(PersonaEntity personaEntity, int eventId, Boolean isPrivate, String carDivision) {
 		EventEntity eventEntity = new EventEntity();
 		eventEntity.setId(eventId);
 
@@ -115,6 +135,7 @@ public class LobbyBO {
 		lobbyEntity.setEvent(eventEntity);
 		lobbyEntity.setIsPrivate(isPrivate);
 		lobbyEntity.setPersonaId(personaEntity.getPersonaId());
+		lobbyEntity.setCarDivision(carDivision);
 		lobbyDao.insert(lobbyEntity);
 
 		sendJoinEvent(personaEntity.getPersonaId(), lobbyEntity);

@@ -168,6 +168,21 @@ public class CommerceBO {
 		int handling = 0;
 		for (PerformancePartEntity performancePartEntity : performanceParts) {
 			int perfHash = performancePartEntity.getPerformancePartAttribHash();
+			if (perfHash == 1158503258) {
+				customCarEntity.setRaceFilter(0);
+			}
+			if (perfHash == 1918528298) {
+				customCarEntity.setRaceFilter(1);
+			}
+			if (perfHash == 2068482365) {
+				customCarEntity.setRaceFilter(2);
+			}
+			if (perfHash == -1099229576) {
+				customCarEntity.setRaceFilter(3);
+			}
+			if (perfHash == 1044347404) {
+				customCarEntity.setRaceFilter(4);
+			}
 			ProductEntity productEntity = productDAO.findByHash(perfHash);
 			topSpeed = productEntity.getTopSpeed().intValue() + topSpeed;
 			accel = productEntity.getAccel().intValue() + accel;
@@ -188,7 +203,7 @@ public class CommerceBO {
 		Float finalTopSpeed = (finalConstant * carClassesEntity.getTsStock().floatValue()) + finalTopSpeed1.floatValue() + finalTopSpeed2.floatValue()
 				+ finalTopSpeed3.floatValue();
 
-		System.out.println(finalTopSpeed.intValue());
+//		System.out.println(finalTopSpeed.intValue());
 
 		Float finalAccel1 = carClassesEntity.getAcVar1().floatValue() * th;
 		Float finalAccel2 = carClassesEntity.getAcVar2().floatValue() * ta;
@@ -196,7 +211,7 @@ public class CommerceBO {
 		Float finalAccel = (finalConstant * carClassesEntity.getAcStock().floatValue()) + finalAccel1.floatValue() + finalAccel2.floatValue()
 				+ finalAccel3.floatValue();
 
-		System.out.println(finalAccel.intValue());
+//		System.out.println(finalAccel.intValue());
 
 		Float finalHandling1 = carClassesEntity.getHaVar1().floatValue() * th;
 		Float finalHandling2 = carClassesEntity.getHaVar2().floatValue() * ta;
@@ -204,10 +219,10 @@ public class CommerceBO {
 		Float finalHandling = (finalConstant * carClassesEntity.getHaStock().floatValue()) + finalHandling1.floatValue() + finalHandling2.floatValue()
 				+ finalHandling3.floatValue();
 
-		System.out.println(finalHandling.intValue());
+//		System.out.println(finalHandling.intValue());
 
 		Float finalClass = (finalTopSpeed.intValue() + finalAccel.intValue() + finalHandling.intValue()) / 3f;
-		System.out.println(finalClass.intValue());
+//		System.out.println(finalClass.intValue());
 		int finalClassInt = finalClass.intValue();
 
 		// move to new method
@@ -306,9 +321,9 @@ public class CommerceBO {
 				}
 			}
 			Float result = Float.sum(basketTotalValue, (resellTotalValue * -1)) * -1;
-			System.out.println("basket: [" + basketTotalValue + "]");
-			System.out.println("resell: [" + resellTotalValue + "]");
-			System.out.println("result: [" + result + "]");
+//			System.out.println("basket: [" + basketTotalValue + "]");
+//			System.out.println("resell: [" + resellTotalValue + "]");
+//			System.out.println("result: [" + result + "]");
 			PersonaEntity persona = defaultCarEntity.getPersona();
 			float cash = (float) persona.getCash();
 			persona.setCash(Float.sum(cash, result));

@@ -1,4 +1,5 @@
-<br/><br/>
-SoapBoxRaceWorld Server
-<br/><br/><br/><br/>
-stress test version
+SoapBox Race World Server
+<br/>
+World Evolved v2
+<br/>
+Nice page, isn't? :)

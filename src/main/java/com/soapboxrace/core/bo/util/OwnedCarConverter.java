@@ -46,6 +46,7 @@ public class OwnedCarConverter {
 		customCarTrans.setRideHeightDrop(customCarEntity.getRideHeightDrop());
 		customCarTrans.setSkillModSlotCount(customCarEntity.getSkillModSlotCount());
 		customCarTrans.setVersion(customCarEntity.getVersion());
+		customCarTrans.setRaceFilter(customCarEntity.getRaceFilter());
 
 		ArrayOfCustomPaintTrans arrayOfCustomPaintTrans = new ArrayOfCustomPaintTrans();
 		List<CustomPaintTrans> customPaintTransList = arrayOfCustomPaintTrans.getCustomPaintTrans();
@@ -145,6 +146,7 @@ public class OwnedCarConverter {
 		customCarEntity.setRideHeightDrop(customCarTrans.getRideHeightDrop());
 		customCarEntity.setSkillModSlotCount(customCarTrans.getSkillModSlotCount());
 		customCarEntity.setVersion(customCarTrans.getVersion());
+		customCarEntity.setRaceFilter(customCarTrans.getRaceFilter());
 	}
 
 	public static void paints2NewEntity(CustomCarTrans customCarTrans, CustomCarEntity customCarEntity) {

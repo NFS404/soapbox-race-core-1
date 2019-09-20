@@ -26,11 +26,8 @@ public class GetServerInformationBO {
 			serverInfoEntity.setRequireTicket(true);
 		}
 		serverInfoEntity.setServerVersion("0.0.7");
-
-		Boolean authservEnabled = parameterBO.getBoolParam("AUTHSERV_ENABLED");
-		String authservEndpoint = parameterBO.getStrParam("AUTHSERV_ENDPOINT");
-		serverInfoEntity.setAuthservEnabled(authservEnabled && authservEndpoint != null && !authservEndpoint.equals(""));
-
+		Integer maxOnlinePlayers = parameterBO.getIntParam("MAX_ONLINE_PLAYERS");
+		serverInfoEntity.setMaxOnlinePlayers(maxOnlinePlayers);
 		return serverInfoEntity;
 	}
 

@@ -51,7 +51,7 @@ public class AdminBO {
 			stringBuilder.append("\nUNKNOWN COMMAND /");
 			stringBuilder.append(cleanCommand);
 			stringBuilder.append("\n");
-			stringBuilder.append("comands available:");
+			stringBuilder.append("Commands available:");
 			BanCommands[] values = BanCommands.values();
 			for (BanCommands banCommandEnum : values) {
 				stringBuilder.append("\n /");
@@ -74,12 +74,6 @@ public class AdminBO {
 				break;
 			case BAN:
 				totalBanTime = 10 * 365 * 24 * 60 * 60 * 1000;
-				break;
-			case BAN_DAY:
-				totalBanTime = 1 * 24 * 60 * 60 * 1000;
-				break;
-			case BAN_WEEK:
-				totalBanTime = 7 * 24 * 60 * 60 * 1000;
 				break;
 			default:
 				break;
@@ -104,9 +98,13 @@ public class AdminBO {
 		UserEntity userEntity = personaEntity.getUser();
 		BanEntity banEntity = new BanEntity();
 		banEntity.setUserEntity(userEntity);
-		banEntity.setData(userEntity.getHwid());
-		banEntity.setType(BanType.HWID_BAN.toString());
+		// banEntity.setData(userEntity.getHwid());
+		// banEntity.setType(BanType.HWID_BAN.toString());
+		banEntity.setData(userEntity.getEmail());
+		banEntity.setType(BanType.EMAIL_BAN.toString());
 		banEntity.setEndsAt(endsOn);
+		// banEntity.setReason("Banned, driver: " + personaEntity.getName());
+		banEntity.setReason("Go to our Discord or VK to got the details.");
 		banDAO.insert(banEntity);
 
 		HardwareInfoEntity hardwareInfoEntity = hardwareInfoDAO.findByUserId(userEntity.getId());
@@ -121,6 +119,5 @@ public class AdminBO {
 
 	private void sendKick(Long userId, Long personaId) {
 		openFireSoapBoxCli.send("<NewsArticleTrans><ExpiryTime><", personaId);
-		tokenSessionBo.deleteByUserId(userId);
 	}
 }

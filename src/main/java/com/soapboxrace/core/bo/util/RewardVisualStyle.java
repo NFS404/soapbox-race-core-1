@@ -1,0 +1,44 @@
+package com.soapboxrace.core.bo.util;
+
+public enum RewardVisualStyle {
+	/**
+	 * 
+	 */
+	achievements_rewards,
+	/**
+	 * 
+	 */
+	cardpack_carprize,
+	/**
+	 * 
+	 */
+	gold,
+	/**
+	* 
+	*/
+	mystery,
+	/**
+	* 
+	*/
+	platinum,
+	/**
+	* 
+	*/
+	silver,
+	/**
+	* 
+	*/
+	skillmods_gold_pursuit,
+	/**
+	* 
+	*/
+	skillmods_gold_race,
+	/**
+	* 
+	*/
+	skillmods_gold_rewardsbooster,
+	/**
+	* 
+	*/
+	skillmods_gold_teamescape
+}

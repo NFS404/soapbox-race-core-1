@@ -52,6 +52,7 @@ public class UserBO {
 
 	public UserEntity createUser(String email, String passwd) {
 		UserEntity userEntity = new UserEntity();
+		email = email.toLowerCase();
 		userEntity.setEmail(email);
 		userEntity.setPassword(passwd);
 		userEntity.setCreated(LocalDateTime.now());
@@ -87,23 +88,6 @@ public class UserBO {
 		inviteTicketEntity.setUser(userEntity);
 		inviteTicketDAO.insert(inviteTicketEntity);
 		loginStatusVO = new LoginStatusVO(userEntity.getId(), "", true);
-		serverInfoDAO.updateNumberOfRegistered();
-		return loginStatusVO;
-	}
-
-	public LoginStatusVO createUserAuthserv(String uuid) {
-		UserEntity userEntity = new UserEntity();
-		userEntity.setAuthservUUID(uuid);
-		userEntity.setCreated(LocalDateTime.now());
-		userEntity.setLastLogin(LocalDateTime.now());
-		userDao.insert(userEntity);
-
-		InviteTicketEntity inviteTicketEntity = new InviteTicketEntity();
-		inviteTicketEntity.setTicket("empty-ticket");
-		inviteTicketEntity.setUser(userEntity);
-		inviteTicketDAO.insert(inviteTicketEntity);
-
-		LoginStatusVO loginStatusVO = new LoginStatusVO(userEntity.getId(), "", true);
 		serverInfoDAO.updateNumberOfRegistered();
 		return loginStatusVO;
 	}

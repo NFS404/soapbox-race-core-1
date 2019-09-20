@@ -30,4 +30,14 @@ public class AuthenticationBO {
 		}
 		return null;
 	}
+	
+	// Checks email only, so no matter which HWID is used, account is blocked - Hypercycle
+	public LoginStatusVO checkIsBannedAccount(String email) {
+		BanEntity banEntity;
+		banEntity = banDAO.findByEmail(email);
+		if (banEntity != null) {
+			return new BanUtil(banEntity).invoke();
+		}
+		return null;
+	}
 }

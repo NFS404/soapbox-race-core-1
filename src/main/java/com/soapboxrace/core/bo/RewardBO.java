@@ -50,6 +50,9 @@ public class RewardBO {
 	@EJB
 	private ProductDAO productDAO;
 
+	@EJB
+	private AchievementsBO achievementsBO;
+
 	public Reward getFinalReward(Integer rep, Integer cash) {
 		Reward finalReward = new Reward();
 		finalReward.setRep(rep);
@@ -91,16 +94,28 @@ public class RewardBO {
 		return luckyDrawItem;
 	}
 
-	public void applyRaceReward(Integer exp, Integer cash, PersonaEntity personaEntity) {
+	private int getMaxLevel(PersonaEntity personaEntity) {
 		int maxLevel = 60;
 		if (personaEntity.getUser().isPremium()) {
 			maxLevel = parameterBO.getIntParam("MAX_LEVEL_PREMIUM");
 		} else {
 			maxLevel = parameterBO.getIntParam("MAX_LEVEL_FREE");
 		}
+		return maxLevel;
+	}
+
+	public void applyRaceReward(Integer exp, Integer cash, PersonaEntity personaEntity) {
+		int maxLevel = getMaxLevel(personaEntity);
 		if (parameterBO.getBoolParam("ENABLE_ECONOMY")) {
-			Integer cashMax = (int) personaEntity.getCash() + cash;
-			personaEntity.setCash(cashMax > 9999999 ? 9999999 : cashMax < 1 ? 1 : cashMax);
+			int incomeCash = (int) personaEntity.getCash() + cash;
+			final int maxCash = parameterBO.getMaxCash(personaEntity);
+			if (incomeCash > maxCash) {
+				incomeCash = maxCash;
+			} else if (incomeCash < 1) {
+				incomeCash = 1;
+			}
+			personaEntity.setCash(incomeCash);
+			achievementsBO.applyPayDayAchievement(personaEntity, cash);
 		}
 
 		if (parameterBO.getBoolParam("ENABLE_REPUTATION") && personaEntity.getLevel() < maxLevel) {
@@ -110,6 +125,7 @@ public class RewardBO {
 				Boolean isLeveledUp = true;
 				while (isLeveledUp) {
 					personaEntity.setLevel(personaEntity.getLevel() + 1);
+					achievementsBO.applyLevelUpAchievement(personaEntity);
 					personaEntity.setRepAtCurrentLevel((int) (expMax - expToNextLevel));
 
 					expToNextLevel = levelRepDao.findByLevel((long) personaEntity.getLevel()).getExpPoint();
@@ -278,7 +294,8 @@ public class RewardBO {
 	public RewardVO getRewardVO(PersonaEntity personaEntity) {
 		Boolean enableEconomy = parameterBO.getBoolParam("ENABLE_ECONOMY");
 		Boolean enableReputation = parameterBO.getBoolParam("ENABLE_REPUTATION");
-		if (personaEntity.getLevel() >= 60) {
+		int maxLevel = getMaxLevel(personaEntity);
+		if (personaEntity.getLevel() >= maxLevel) {
 			enableReputation = false;
 		}
 		if (personaEntity.getBoost() > 9999999) {

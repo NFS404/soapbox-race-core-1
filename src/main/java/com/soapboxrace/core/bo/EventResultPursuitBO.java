@@ -5,8 +5,12 @@ import javax.ejb.Stateless;
 
 import com.soapboxrace.core.dao.EventDataDAO;
 import com.soapboxrace.core.dao.EventSessionDAO;
+import com.soapboxrace.core.dao.OwnedCarDAO;
+import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.jpa.EventDataEntity;
 import com.soapboxrace.core.jpa.EventSessionEntity;
+import com.soapboxrace.core.jpa.OwnedCarEntity;
+import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.jaxb.http.ExitPath;
 import com.soapboxrace.jaxb.http.PursuitArbitrationPacket;
 import com.soapboxrace.jaxb.http.PursuitEventResult;
@@ -26,8 +30,26 @@ public class EventResultPursuitBO {
 	@EJB
 	private CarDamageBO carDamageBO;
 
+	@EJB
+	private AchievementsBO achievementsBO;
+
+	@EJB
+	private PersonaDAO personaDAO;
+	
+    @EJB
+    private OwnedCarDAO ownedCarDAO;
+
+    @EJB
+    private PersonaBO personaBO;
+
 	public PursuitEventResult handlePursitEnd(EventSessionEntity eventSessionEntity, Long activePersonaId, PursuitArbitrationPacket pursuitArbitrationPacket,
 			Boolean isBusted) {
+		if (!isBusted) {
+			PersonaEntity personaEntity = personaDAO.findById(activePersonaId);
+			achievementsBO.applyOutlawAchievement(personaEntity);
+			achievementsBO.applyPursuitCostToState(pursuitArbitrationPacket, personaEntity);
+			achievementsBO.applyAirTimeAchievement(pursuitArbitrationPacket, personaEntity);
+		}
 		Long eventSessionId = eventSessionEntity.getId();
 		eventSessionEntity.setEnded(System.currentTimeMillis());
 
@@ -60,10 +82,15 @@ public class EventResultPursuitBO {
 		pursuitEventResult.setEventId(eventDataEntity.getEvent().getId());
 		pursuitEventResult.setEventSessionId(eventSessionId);
 		pursuitEventResult.setExitPath(ExitPath.EXIT_TO_FREEROAM);
-		pursuitEventResult.setHeat(1);
+		pursuitEventResult.setHeat(isBusted ? 1 : pursuitArbitrationPacket.getHeat());
 		pursuitEventResult.setInviteLifetimeInMilliseconds(0);
 		pursuitEventResult.setLobbyInviteId(0);
 		pursuitEventResult.setPersonaId(activePersonaId);
+		
+	    OwnedCarEntity ownedCarEntity = personaBO.getDefaultCarEntity(activePersonaId).getOwnedCar();
+	    ownedCarEntity.setHeat(isBusted ? 1 : pursuitArbitrationPacket.getHeat());
+	    ownedCarDAO.update(ownedCarEntity);
+	    
 		return pursuitEventResult;
 	}
 

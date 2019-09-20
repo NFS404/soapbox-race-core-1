@@ -5,8 +5,10 @@ import javax.ejb.Stateless;
 
 import com.soapboxrace.core.dao.EventDataDAO;
 import com.soapboxrace.core.dao.EventSessionDAO;
+import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.jpa.EventDataEntity;
 import com.soapboxrace.core.jpa.EventSessionEntity;
+import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
 import com.soapboxrace.core.xmpp.XmppEvent;
 import com.soapboxrace.jaxb.http.ArrayOfDragEntrantResult;
@@ -35,6 +37,12 @@ public class EventResultDragBO {
 	@EJB
 	private CarDamageBO carDamageBO;
 
+	@EJB
+	private AchievementsBO achievementsBO;
+
+	@EJB
+	private PersonaDAO personaDAO;
+
 	public DragEventResult handleDragEnd(EventSessionEntity eventSessionEntity, Long activePersonaId, DragArbitrationPacket dragArbitrationPacket) {
 		Long eventSessionId = eventSessionEntity.getId();
 		eventSessionEntity.setEnded(System.currentTimeMillis());
@@ -51,8 +59,12 @@ public class EventResultDragBO {
 
 		XMPP_ResponseTypeDragEntrantResult dragEntrantResultResponse = new XMPP_ResponseTypeDragEntrantResult();
 		dragEntrantResultResponse.setDragEntrantResult(xmppDragResult);
+		PersonaEntity personaEntity = personaDAO.findById(activePersonaId);
+		achievementsBO.applyAirTimeAchievement(dragArbitrationPacket, personaEntity);
 
 		EventDataEntity eventDataEntity = eventDataDao.findByPersonaAndEventSessionId(activePersonaId, eventSessionId);
+		achievementsBO.applyDragAchievement(eventDataEntity, dragArbitrationPacket, activePersonaId);
+
 		eventDataEntity.setAlternateEventDurationInMilliseconds(dragArbitrationPacket.getAlternateEventDurationInMilliseconds());
 		eventDataEntity.setCarId(dragArbitrationPacket.getCarId());
 		eventDataEntity.setEventDurationInMilliseconds(dragArbitrationPacket.getEventDurationInMilliseconds());

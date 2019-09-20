@@ -7,20 +7,29 @@ import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 
+import com.soapboxrace.core.dao.AchievementPersonaDAO;
+import com.soapboxrace.core.dao.AchievementStateDAO;
 import com.soapboxrace.core.dao.CarSlotDAO;
 import com.soapboxrace.core.dao.InventoryDAO;
 import com.soapboxrace.core.dao.InventoryItemDAO;
 import com.soapboxrace.core.dao.LobbyEntrantDAO;
 import com.soapboxrace.core.dao.PersonaDAO;
+import com.soapboxrace.core.dao.TokenSessionDAO;
 import com.soapboxrace.core.dao.TreasureHuntDAO;
 import com.soapboxrace.core.dao.UserDAO;
+import com.soapboxrace.core.jpa.AchievementDefinitionEntity;
+import com.soapboxrace.core.jpa.AchievementRankEntity;
+import com.soapboxrace.core.jpa.BadgeDefinitionEntity;
+import com.soapboxrace.core.jpa.BadgePersonaEntity;
 import com.soapboxrace.core.jpa.CarSlotEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.TreasureHuntEntity;
 import com.soapboxrace.core.jpa.UserEntity;
+import com.soapboxrace.core.xmpp.OpenFireRestApiCli;
 import com.soapboxrace.jaxb.http.ArrayOfBadgePacket;
 import com.soapboxrace.jaxb.http.ArrayOfPersonaBase;
 import com.soapboxrace.jaxb.http.ArrayOfString;
+import com.soapboxrace.jaxb.http.BadgePacket;
 import com.soapboxrace.jaxb.http.PersonaBase;
 import com.soapboxrace.jaxb.http.PersonaPresence;
 import com.soapboxrace.jaxb.http.ProfileData;
@@ -55,6 +64,18 @@ public class DriverPersonaBO {
 	@EJB
 	private InventoryBO inventoryBO;
 
+	@EJB
+	private TokenSessionDAO tokenSessionDAO;
+
+	@EJB
+	private AchievementPersonaDAO achievementPersonaDAO;
+
+	@EJB
+	private AchievementStateDAO achievementStateDAO;
+
+	@EJB
+	private OpenFireRestApiCli openFireRestApiCli;
+
 	public ProfileData createPersona(Long userId, PersonaEntity personaEntity) {
 		UserEntity userEntity = userDao.findById(userId);
 
@@ -88,7 +109,23 @@ public class DriverPersonaBO {
 	public ProfileData getPersonaInfo(Long personaId) {
 		PersonaEntity personaEntity = personaDao.findById(personaId);
 		ProfileData profileData = castPersonaEntity(personaEntity);
-		profileData.setBadges(new ArrayOfBadgePacket());
+		List<BadgePersonaEntity> listOfBadges = personaEntity.getListOfBadges();
+		ArrayOfBadgePacket arrayOfBadgePacket = new ArrayOfBadgePacket();
+		List<BadgePacket> badgePacketList = arrayOfBadgePacket.getBadgePacket();
+		for (BadgePersonaEntity badgePersonaEntity : listOfBadges) {
+			BadgePacket badgePacket = new BadgePacket();
+			AchievementRankEntity achievementRank = badgePersonaEntity.getAchievementRank();
+			AchievementDefinitionEntity achievementDefinition = achievementRank.getAchievementDefinition();
+			BadgeDefinitionEntity badgeDefinition = achievementDefinition.getBadgeDefinition();
+			badgePacket.setBadgeDefinitionId(badgeDefinition.getId().intValue());
+			badgePacket.setIsRare(false);
+			badgePacket.setRarity(0f);
+			badgePacket.setSlotId(badgePersonaEntity.getSlot());
+			badgePacket.setAchievementRankId(achievementRank.getId().intValue());
+			badgePacketList.add(badgePacket);
+		}
+
+		profileData.setBadges(arrayOfBadgePacket);
 		profileData.setMotto(personaEntity.getMotto());
 		profileData.setPercentToLevel(personaEntity.getPercentToLevel());
 		profileData.setRating(personaEntity.getRating());
@@ -106,7 +143,22 @@ public class DriverPersonaBO {
 				return arrayOfPersonaBase;
 			}
 			PersonaBase personaBase = new PersonaBase();
-			personaBase.setBadges(new ArrayOfBadgePacket());
+			List<BadgePersonaEntity> listOfBadges = personaEntity.getListOfBadges();
+			ArrayOfBadgePacket arrayOfBadgePacket = new ArrayOfBadgePacket();
+			List<BadgePacket> badgePacketList = arrayOfBadgePacket.getBadgePacket();
+			for (BadgePersonaEntity badgePersonaEntity : listOfBadges) {
+				BadgePacket badgePacket = new BadgePacket();
+				AchievementRankEntity achievementRank = badgePersonaEntity.getAchievementRank();
+				AchievementDefinitionEntity achievementDefinition = achievementRank.getAchievementDefinition();
+				BadgeDefinitionEntity badgeDefinition = achievementDefinition.getBadgeDefinition();
+				badgePacket.setBadgeDefinitionId(badgeDefinition.getId().intValue());
+				badgePacket.setIsRare(false);
+				badgePacket.setRarity(0f);
+				badgePacket.setSlotId(badgePersonaEntity.getSlot());
+				badgePacket.setAchievementRankId(achievementRank.getId().intValue());
+				badgePacketList.add(badgePacket);
+			}
+			personaBase.setBadges(arrayOfBadgePacket);
 			personaBase.setIconIndex(personaEntity.getIconIndex());
 			personaBase.setLevel(personaEntity.getLevel());
 			personaBase.setMotto(personaEntity.getMotto());
@@ -131,16 +183,22 @@ public class DriverPersonaBO {
 		treasureHuntDAO.deleteByPersona(personaEntity.getPersonaId());
 		inventoryItemDAO.deleteByPersona(personaId);
 		inventoryDAO.deleteByPersona(personaId);
-
+		achievementPersonaDAO.deleteByPersona(personaId);
+		achievementStateDAO.deleteByPersona(personaId);
 		personaDao.delete(personaEntity);
 	}
 
 	public PersonaPresence getPersonaPresenceByName(String name) {
 		PersonaEntity personaEntity = personaDao.findByName(name);
 		if (personaEntity != null) {
+			Long personaId = personaEntity.getPersonaId();
 			PersonaPresence personaPresence = new PersonaPresence();
-			personaPresence.setPersonaId(personaEntity.getPersonaId());
-			personaPresence.setPresence(1);
+			personaPresence.setPersonaId(personaId);
+			if (openFireRestApiCli.isOnline(personaId)) {
+				personaPresence.setPresence(1);
+			} else {
+				personaPresence.setPresence(0);
+			}
 			personaPresence.setUserId(personaEntity.getUser().getId());
 			return personaPresence;
 		}

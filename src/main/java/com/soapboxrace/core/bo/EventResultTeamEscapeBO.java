@@ -5,8 +5,10 @@ import javax.ejb.Stateless;
 
 import com.soapboxrace.core.dao.EventDataDAO;
 import com.soapboxrace.core.dao.EventSessionDAO;
+import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.jpa.EventDataEntity;
 import com.soapboxrace.core.jpa.EventSessionEntity;
+import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
 import com.soapboxrace.core.xmpp.XmppEvent;
 import com.soapboxrace.jaxb.http.ArrayOfTeamEscapeEntrantResult;
@@ -35,6 +37,12 @@ public class EventResultTeamEscapeBO {
 	@EJB
 	private CarDamageBO carDamageBO;
 
+	@EJB
+	private AchievementsBO achievementsBO;
+
+	@EJB
+	private PersonaDAO personaDAO;
+
 	public TeamEscapeEventResult handleTeamEscapeEnd(EventSessionEntity eventSessionEntity, Long activePersonaId,
 			TeamEscapeArbitrationPacket teamEscapeArbitrationPacket) {
 		Long eventSessionId = eventSessionEntity.getId();
@@ -50,6 +58,11 @@ public class EventResultTeamEscapeBO {
 
 		XMPP_ResponseTypeTeamEscapeEntrantResult teamEscapeEntrantResultResponse = new XMPP_ResponseTypeTeamEscapeEntrantResult();
 		teamEscapeEntrantResultResponse.setTeamEscapeEntrantResult(xmppTeamEscapeResult);
+
+		PersonaEntity personaEntity = personaDAO.findById(activePersonaId);
+		achievementsBO.applyAirTimeAchievement(teamEscapeArbitrationPacket, personaEntity);
+		achievementsBO.applyPursuitCostToState(teamEscapeArbitrationPacket, personaEntity);
+		achievementsBO.applyTeamEscape(teamEscapeArbitrationPacket, personaEntity);
 
 		EventDataEntity eventDataEntity = eventDataDao.findByPersonaAndEventSessionId(activePersonaId, eventSessionId);
 		eventDataEntity.setAlternateEventDurationInMilliseconds(teamEscapeArbitrationPacket.getAlternateEventDurationInMilliseconds());
@@ -78,12 +91,16 @@ public class EventResultTeamEscapeBO {
 		eventDataDao.update(eventDataEntity);
 
 		ArrayOfTeamEscapeEntrantResult arrayOfTeamEscapeEntrantResult = new ArrayOfTeamEscapeEntrantResult();
+		boolean oneGetAway = false;
 		for (EventDataEntity racer : eventDataDao.getRacers(eventSessionId)) {
 			TeamEscapeEntrantResult teamEscapeEntrantResult = new TeamEscapeEntrantResult();
 			teamEscapeEntrantResult.setDistanceToFinish(racer.getDistanceToFinish());
 			teamEscapeEntrantResult.setEventDurationInMilliseconds(racer.getEventDurationInMilliseconds());
 			teamEscapeEntrantResult.setEventSessionId(eventSessionId);
 			teamEscapeEntrantResult.setFinishReason(racer.getFinishReason());
+			if (racer.getFinishReason() == 22) {
+				oneGetAway = true;
+			}
 			teamEscapeEntrantResult.setFractionCompleted(racer.getFractionCompleted());
 			teamEscapeEntrantResult.setPersonaId(racer.getPersonaId());
 			teamEscapeEntrantResult.setRanking(racer.getRank());
@@ -97,11 +114,20 @@ public class EventResultTeamEscapeBO {
 				}
 			}
 		}
+		if (oneGetAway && teamEscapeArbitrationPacket.getRank() == eventDataDao.getRacers(eventSessionId).size()) {
+			for (EventDataEntity racer : eventDataDao.getRacers(eventSessionId)) {
+				Long personaId = racer.getPersonaId();
+				PersonaEntity personaEntityGetAway = personaDAO.findById(personaId);
+				achievementsBO.applyTeamEscapeGetAway(personaEntityGetAway);
+			}
+		}
 
 		TeamEscapeEventResult teamEscapeEventResult = new TeamEscapeEventResult();
+		// if (eventDataDao.getRacers(eventSessionId)) > 1) {
+		// 	teamEscapeEventResult.setAccolades(rewardTeamEscapeBO.getTeamEscapeAccolades(activePersonaId, teamEscapeArbitrationPacket, eventSessionEntity));
+		// }
 		teamEscapeEventResult.setAccolades(rewardTeamEscapeBO.getTeamEscapeAccolades(activePersonaId, teamEscapeArbitrationPacket, eventSessionEntity));
-		teamEscapeEventResult
-				.setDurability(carDamageBO.updateDamageCar(activePersonaId, teamEscapeArbitrationPacket, teamEscapeArbitrationPacket.getNumberOfCollisions()));
+		teamEscapeEventResult.setDurability(carDamageBO.updateDamageCar(activePersonaId, teamEscapeArbitrationPacket, teamEscapeArbitrationPacket.getNumberOfCollisions()));
 		teamEscapeEventResult.setEntrants(arrayOfTeamEscapeEntrantResult);
 		teamEscapeEventResult.setEventId(eventDataEntity.getEvent().getId());
 		teamEscapeEventResult.setEventSessionId(eventSessionId);

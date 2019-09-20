@@ -5,8 +5,10 @@ import javax.ejb.Stateless;
 
 import com.soapboxrace.core.dao.EventDataDAO;
 import com.soapboxrace.core.dao.EventSessionDAO;
+import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.jpa.EventDataEntity;
 import com.soapboxrace.core.jpa.EventSessionEntity;
+import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
 import com.soapboxrace.core.xmpp.XmppEvent;
 import com.soapboxrace.jaxb.http.ArbitrationPacket;
@@ -36,6 +38,12 @@ public class EventResultRouteBO {
 	@EJB
 	private CarDamageBO carDamageBO;
 
+	@EJB
+	private AchievementsBO achievementsBO;
+
+	@EJB
+	private PersonaDAO personaDAO;
+
 	public RouteEventResult handleRaceEnd(EventSessionEntity eventSessionEntity, Long activePersonaId, RouteArbitrationPacket routeArbitrationPacket) {
 		Long eventSessionId = eventSessionEntity.getId();
 		eventSessionEntity.setEnded(System.currentTimeMillis());
@@ -43,6 +51,11 @@ public class EventResultRouteBO {
 		eventSessionDao.update(eventSessionEntity);
 
 		EventDataEntity eventDataEntity = eventDataDao.findByPersonaAndEventSessionId(activePersonaId, eventSessionId);
+
+		PersonaEntity personaEntity = personaDAO.findById(activePersonaId);
+		achievementsBO.applyRaceAchievements(eventDataEntity, routeArbitrationPacket, personaEntity);
+		achievementsBO.applyAirTimeAchievement(routeArbitrationPacket, personaEntity);
+
 		updateEventDataEntity(eventDataEntity, routeArbitrationPacket);
 
 		// RouteArbitrationPacket

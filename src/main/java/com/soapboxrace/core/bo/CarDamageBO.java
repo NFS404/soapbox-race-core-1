@@ -21,7 +21,7 @@ public class CarDamageBO {
 	@EJB
 	private ParameterBO parameterBO;
 
-	public Integer updateDamageCar(Long personaId, ArbitrationPacket arbitrationPacket, Integer numberOfCollision) {
+	public Integer updateDamageCar(Long personaId, ArbitrationPacket arbitrationPacket, int numberOfCollision) {
 		if (!parameterBO.getBoolParam("ENABLE_CAR_DAMAGE")) {
 			return 100;
 		}
@@ -30,10 +30,10 @@ public class CarDamageBO {
 		OwnedCarEntity ownedCarEntity = ownedCarDAO.findById(carId);
 		CarSlotEntity carSlotEntity = ownedCarEntity.getCarSlot();
 		int durability = ownedCarEntity.getDurability();
-		if (durability > 10) {
-			Integer calcDamage = numberOfCollision + ((int) (eventDuration / 60000)) * 2;
-			Integer newCarDamage = durability - calcDamage;
-			ownedCarEntity.setDurability(newCarDamage < 10 ? 10 : newCarDamage);
+		if (durability > 0 && numberOfCollision > 0) {
+			int calcDamage = numberOfCollision + ((int) (eventDuration.intValue() / 60000)) * 2;
+			int newCarDamage = durability - calcDamage;
+			ownedCarEntity.setDurability(newCarDamage < 0 ? 0 : newCarDamage);
 			if (carSlotEntity != null) {
 				carSlotDao.update(carSlotEntity);
 			}

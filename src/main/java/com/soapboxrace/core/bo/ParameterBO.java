@@ -6,6 +6,7 @@ import javax.ejb.Stateless;
 import com.soapboxrace.core.dao.ParameterDAO;
 import com.soapboxrace.core.dao.TokenSessionDAO;
 import com.soapboxrace.core.jpa.ParameterEntity;
+import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.TokenSessionEntity;
 
 @Stateless
@@ -18,6 +19,10 @@ public class ParameterBO {
 	private TokenSessionDAO tokenDAO;
 
 	private String getParameter(String name) {
+		String property = System.getProperty(name);
+		if (property != null) {
+			return property;
+		}
 		try {
 			ParameterEntity findById = parameterDao.findById(name);
 			return findById.getValue();
@@ -72,7 +77,7 @@ public class ParameterBO {
 	}
 
 	public int getCarLimit(String securityToken) {
-		TokenSessionEntity tokenSession = tokenDAO.findById(securityToken);
+		TokenSessionEntity tokenSession = tokenDAO.findBySecurityToken(securityToken);
 		if (tokenSession.isPremium()) {
 			return getIntParam("MAX_CAR_SLOTS_PREMIUM");
 		}
@@ -80,8 +85,15 @@ public class ParameterBO {
 	}
 
 	public int getMaxCash(String securityToken) {
-		TokenSessionEntity tokenSession = tokenDAO.findById(securityToken);
+		TokenSessionEntity tokenSession = tokenDAO.findBySecurityToken(securityToken);
 		if (tokenSession.isPremium()) {
+			return getIntParam("MAX_PLAYER_CASH_PREMIUM");
+		}
+		return getIntParam("MAX_PLAYER_CASH_FREE");
+	}
+
+	public int getMaxCash(PersonaEntity persona) {
+		if (persona.getUser().isPremium()) {
 			return getIntParam("MAX_PLAYER_CASH_PREMIUM");
 		}
 		return getIntParam("MAX_PLAYER_CASH_FREE");

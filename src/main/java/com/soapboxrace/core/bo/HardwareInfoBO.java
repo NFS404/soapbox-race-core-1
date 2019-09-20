@@ -31,6 +31,9 @@ public class HardwareInfoBO {
 		hardwareInfo.setCpuid12(0);
 		hardwareInfo.setCpuid13(0);
 		hardwareInfo.setUserID(0);
+		hardwareInfo.setGpuDriverBuild(0);
+		hardwareInfo.setGpuDriverSubversion(0);
+		hardwareInfo.setGpuDriverVersion(0);
 		String hardwareInfoXml = MarshalXML.marshal(hardwareInfo);
 		String calcHardwareInfoHash = calcHardwareInfoHash(hardwareInfoXml);
 		HardwareInfoEntity hardwareInfoEntityTmp = hardwareInfoDAO.findByHardwareHash(calcHardwareInfoHash);

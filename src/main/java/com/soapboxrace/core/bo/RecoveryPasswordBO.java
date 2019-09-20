@@ -74,8 +74,8 @@ public class RecoveryPasswordBO {
 		recoveryPasswordEntity.setUserId(userEntity.getId());
 		recoveryPasswordEntity.setIsClose(false);
 		recoveryPasswordDao.insert(recoveryPasswordEntity);
-
-		return "Link to reset password sent to: [" + userEntity.getEmail() + "]";
+		String email = userEntity.getEmail().toLowerCase();
+		return "Link to reset password sent to: [" + email + "]";
 	}
 
 	private String createSecretKey(Long userId) {
@@ -86,7 +86,8 @@ public class RecoveryPasswordBO {
 		try {
 			MimeMessage message = new MimeMessage(mailSession);
 			message.setFrom(new InternetAddress(parameterBO.getStrParam("EMAIL_FROM")));
-			message.addRecipient(Message.RecipientType.TO, new InternetAddress(userEntity.getEmail()));
+			String email = userEntity.getEmail().toLowerCase();
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
 			message.setSubject("Recovery Password Email");
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("Dear user,\n\n");

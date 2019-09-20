@@ -47,7 +47,7 @@ public abstract class BaseOpenFireTalk implements IOpenFireTalk {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("S->C [" + msg + "]");
+//		System.out.println("C->S [" + msg + "]");
 		if (msg != null && !msg.isEmpty()) {
 			this.handleMessage(msg);
 		}
@@ -58,7 +58,7 @@ public abstract class BaseOpenFireTalk implements IOpenFireTalk {
 		try {
 			char[] cbuf = new char[msg.length()];
 			msg.getChars(0, msg.length(), cbuf, 0);
-			System.out.println("C->S [" + msg + "]");
+			// System.out.println("S->C [" + msg + "]");
 			writer.write(cbuf);
 			writer.flush();
 		} catch (Exception e) {

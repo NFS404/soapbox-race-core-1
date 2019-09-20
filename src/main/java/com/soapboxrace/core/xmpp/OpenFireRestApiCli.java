@@ -1,10 +1,16 @@
 package com.soapboxrace.core.xmpp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.AccessTimeout;
 import javax.ejb.EJB;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ws.rs.client.Client;
@@ -17,9 +23,12 @@ import javax.ws.rs.core.Response;
 
 import org.igniterealtime.restclient.entity.MUCRoomEntities;
 import org.igniterealtime.restclient.entity.MUCRoomEntity;
+import org.igniterealtime.restclient.entity.SessionEntities;
+import org.igniterealtime.restclient.entity.SessionEntity;
 import org.igniterealtime.restclient.entity.UserEntity;
 
 import com.soapboxrace.core.bo.ParameterBO;
+import com.soapboxrace.core.dao.TokenSessionDAO;
 
 @Startup
 @Singleton
@@ -30,6 +39,9 @@ public class OpenFireRestApiCli {
 
 	@EJB
 	private ParameterBO parameterBO;
+	
+	@EJB
+	private TokenSessionDAO tokenDAO;
 
 	@PostConstruct
 	public void init() {
@@ -42,17 +54,33 @@ public class OpenFireRestApiCli {
 	}
 
 	private Builder getBuilder(String path) {
+		return getBuilder(path, null);
+	}
+
+	private Builder getBuilder(String path, HashMap<String, String> queryString) {
 		Client client = ClientBuilder.newClient();
 		WebTarget target = client.target(openFireAddress).path(path);
+
+		if (queryString != null) {
+			Iterator<Entry<String, String>> iterator = queryString.entrySet().iterator();
+			while (iterator.hasNext()) {
+				Entry<String, String> next = iterator.next();
+				String key = next.getKey();
+				String value = next.getValue();
+				target = target.queryParam(key, value);
+			}
+		}
 		Builder request = target.request(MediaType.APPLICATION_XML);
 		request.header("Authorization", openFireToken);
 		return request;
 	}
-
+    
+	@AccessTimeout(value=20000)
+	@Lock(LockType.WRITE)
 	public void createUpdatePersona(String user, String password) {
-		if (!restApiEnabled) {
-			return;
-		}
+//		if (!restApiEnabled) {
+//			return;
+//		}
 		Builder builder = getBuilder("users/" + user);
 		Response response = builder.get();
 		if (response.getStatus() == 200) {
@@ -69,47 +97,66 @@ public class OpenFireRestApiCli {
 		}
 		response.close();
 	}
-
+  
+	@AccessTimeout(value=20000)
 	public void createUpdatePersona(Long personaId, String password) {
 		String user = "sbrw." + personaId.toString();
 		createUpdatePersona(user, password);
 	}
 
-	public int getTotalOnlineUsers() {
-		if (!restApiEnabled) {
-			return 0;
-		}
-		Builder builder = getBuilder("system/statistics/sessions");
-		SessionsCount sessionsCount = builder.get(SessionsCount.class);
-		int clusterSessions = sessionsCount.getClusterSessions();
-		if (clusterSessions > 1) {
-			return clusterSessions - 1;
-		}
-		return 0;
+	@AccessTimeout(value=20000)
+    public int getTotalOnlineUsers() {
+		return tokenDAO.getUsersOnlineCount();
 	}
 
+	// http://192.168.0.9:9090/plugins/restapi/v1/chatrooms?type=all&search=group
+	@AccessTimeout(value=20000)
 	public List<Long> getAllPersonaByGroup(Long personaId) {
-		if (!restApiEnabled) {
-			return new ArrayList<>();
-		}
-		Builder builder = getBuilder("chatrooms");
+//		if (!restApiEnabled) {
+//			return new ArrayList<>();
+//		}
+		HashMap<String, String> queryString = new HashMap<>();
+		queryString.put("type", "all");
+		queryString.put("search", "group");
+		Builder builder = getBuilder("chatrooms", queryString);
+
 		MUCRoomEntities roomEntities = builder.get(MUCRoomEntities.class);
 		List<MUCRoomEntity> listRoomEntity = roomEntities.getMucRooms();
-		for (MUCRoomEntity entity : listRoomEntity) {
-			String roomName = entity.getRoomName();
-			if (roomName.contains("group.channel.")) {
-				Long idOwner = Long.parseLong(roomName.substring(roomName.lastIndexOf('.') + 1));
-				if (idOwner.equals(personaId)) {
-					return getAllOccupantInGroup(roomName);
-				}
+		if (listRoomEntity != null) {
+			String roomName = findPersonaRoomName(personaId, listRoomEntity);
+			if (roomName != null) {
+				return getAllOccupantInGroup(roomName);
 			}
 		}
 		return new ArrayList<>();
 	}
+    
+	@AccessTimeout(value=20000)
+	private String findPersonaRoomName(Long personaId, List<MUCRoomEntity> listRoomEntity) {
+		for (MUCRoomEntity entity : listRoomEntity) {
+			String roomName = entity.getRoomName();
+			Long idOwner = Long.parseLong(roomName.substring(roomName.lastIndexOf('.') + 1));
+			if (idOwner.equals(personaId)) {
+				return roomName;
+			} else {
+				List<Long> allOccupantInGroup = getAllOccupantInGroup(roomName);
+				for (Long idOccupant : allOccupantInGroup) {
+					if (idOccupant.equals(personaId)) {
+						return roomName;
+					}
+				}
+			}
+		}
+		return null;
+	}
 
+	// http://192.168.0.9:9090/plugins/restapi/v1/chatrooms/group.channel.5122493.100/participants
 	private List<Long> getAllOccupantInGroup(String roomName) {
 		Builder builder = getBuilder("chatrooms/" + roomName + "/occupants");
 		OccupantEntities occupantEntities = builder.get(OccupantEntities.class);
+		if (occupantEntities == null) {
+			return new ArrayList<>();
+		}
 		List<Long> listOfPersona = new ArrayList<Long>();
 		for (OccupantEntity entity : occupantEntities.getOccupants()) {
 			String jid = entity.getJid();
@@ -119,4 +166,35 @@ public class OpenFireRestApiCli {
 		return listOfPersona;
 	}
 
+	@Lock(LockType.READ)
+	@AccessTimeout(value=20000)
+	public boolean isOnline(Long personaId) {
+//		if (!restApiEnabled) {
+//			return false;
+//		}
+		Builder builder = getBuilder("sessions/sbrw." + personaId.toString());
+		Response response = builder.get();
+		int length = response.getLength();
+		if (length > 100) {
+			return true;
+		}
+		return false;
+	}
+
+	@Lock(LockType.READ)
+	@AccessTimeout(value=20000)
+	public List<SessionEntity> getAllSessions() {
+		Builder builder = getBuilder("sessions");
+		SessionEntities occupantEntities = builder.get(SessionEntities.class);
+		List<SessionEntity> sessions = occupantEntities.getSessions();
+		return sessions;
+	}
+
+	@Lock(LockType.READ)
+	@AccessTimeout(value=20000)
+	public boolean isRestApiEnabled() {
+		return restApiEnabled;
+	}
+
 }
+

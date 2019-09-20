@@ -26,20 +26,34 @@ public class OpenFireSoapBoxCli {
 	}
 
 	public void send(String msg, String to) {
+		if (xmppTalk.getSocket().isClosed()) {
+			restart();
+		}
 		xmppTalk.send(msg, to, parameterBO);
 	}
 
 	public void send(String msg, Long to) {
+		if (xmppTalk.getSocket().isClosed()) {
+			restart();
+		}
 		xmppTalk.send(msg, to, parameterBO);
 	}
 
 	public void send(Object object, Long to) {
+		if (xmppTalk.getSocket().isClosed()) {
+			restart();
+		}
 		String responseXmlStr = MarshalXML.marshal(object);
 		this.send(responseXmlStr, to);
 	}
 
 	public void setXmppTalk(IOpenFireTalk xmppTalk) {
 		this.xmppTalk = xmppTalk;
+	}
+
+	private void restart() {
+		handshake.init();
+		this.xmppTalk = handshake.getXmppTalk();
 	}
 
 }

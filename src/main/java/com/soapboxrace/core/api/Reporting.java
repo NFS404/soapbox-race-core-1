@@ -82,7 +82,7 @@ public class Reporting {
 	@Path("{path:.*}")
 	@Produces(MediaType.APPLICATION_XML)
 	public String genericEmptyPut(@PathParam("path") String path) {
-		System.out.println("empty PUT!!!");
+		System.out.println("Reporting empty PUT!!!" + path);
 		return "";
 	}
 }

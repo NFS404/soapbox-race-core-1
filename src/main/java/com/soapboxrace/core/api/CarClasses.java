@@ -5,7 +5,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.soapboxrace.core.api.util.Secured;
 import com.soapboxrace.jaxb.http.ArrayOfCarClass;
 import com.soapboxrace.jaxb.http.CarClass;
 
@@ -13,7 +12,6 @@ import com.soapboxrace.jaxb.http.CarClass;
 public class CarClasses {
 
 	@GET
-	@Secured
 	@Produces(MediaType.APPLICATION_XML)
 	public ArrayOfCarClass carClasses() {
 		ArrayOfCarClass arrayOfCarClass = new ArrayOfCarClass();

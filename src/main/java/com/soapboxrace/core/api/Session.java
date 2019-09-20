@@ -10,7 +10,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
-import com.soapboxrace.core.api.util.Secured;
 import com.soapboxrace.core.bo.ParameterBO;
 import com.soapboxrace.core.bo.SessionBO;
 import com.soapboxrace.jaxb.http.ChatServer;
@@ -28,7 +27,6 @@ public class Session {
 	private ParameterBO parameterBO;
 
 	@GET
-	@Secured
 	@Path("/GetChatInfo")
 	@Produces(MediaType.APPLICATION_XML)
 	public ChatServer getChatInfo() {

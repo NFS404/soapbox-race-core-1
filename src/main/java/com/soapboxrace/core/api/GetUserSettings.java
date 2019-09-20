@@ -10,7 +10,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.soapboxrace.core.api.util.Secured;
 import com.soapboxrace.core.bo.GetServerInformationBO;
 import com.soapboxrace.core.bo.SceneryBO;
 import com.soapboxrace.core.jpa.ServerInfoEntity;
@@ -27,7 +26,6 @@ public class GetUserSettings {
 	private SceneryBO sceneryBO;
 
 	@GET
-	@Secured
 	@Produces(MediaType.APPLICATION_XML)
 	public UserSettings getUserSettingsGet(@HeaderParam("userId") Long userId) {
 		ServerInfoEntity serverInformation = serverInformationBO.getServerInformation();

@@ -10,12 +10,12 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/")
 public class Generic {
-	
+
 	@GET
 	@Path("{path:.*}")
 	@Produces(MediaType.APPLICATION_XML)
 	public String genericEmptyGet(@PathParam("path") String path) {
-		System.out.println("empty GET!!!");
+		System.out.println("empty GET!!!" + path);
 		return "";
 	}
 
@@ -23,7 +23,7 @@ public class Generic {
 	@Path("{path:.*}")
 	@Produces(MediaType.APPLICATION_XML)
 	public String genericEmptyPost(@PathParam("path") String path) {
-		System.out.println("empty POST!!!");
+		System.out.println("empty POST!!!" + path);
 		return "";
 	}
 
@@ -31,7 +31,7 @@ public class Generic {
 	@Path("{path:.*}")
 	@Produces(MediaType.APPLICATION_XML)
 	public String genericEmptyPut(@PathParam("path") String path) {
-		System.out.println("empty PUT!!!");
+		System.out.println("empty PUT!!!" + path);
 		return "";
 	}
 

@@ -17,9 +17,13 @@ import javax.ws.rs.core.Response;
 
 import com.soapboxrace.core.api.util.Secured;
 import com.soapboxrace.core.bo.DriverPersonaBO;
+import com.soapboxrace.core.bo.FriendBO;
+import com.soapboxrace.core.bo.ParameterBO;
 import com.soapboxrace.core.bo.TokenSessionBO;
 import com.soapboxrace.core.bo.UserBO;
+import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.jpa.PersonaEntity;
+import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
 import com.soapboxrace.jaxb.http.ArrayOfInt;
 import com.soapboxrace.jaxb.http.ArrayOfLong;
 import com.soapboxrace.jaxb.http.ArrayOfPersonaBase;
@@ -45,8 +49,19 @@ public class DriverPersona {
 	@EJB
 	private TokenSessionBO tokenSessionBo;
 
+	@EJB
+	private PersonaDAO personaDAO;
+
+	@EJB
+	private OpenFireSoapBoxCli openFireSoapBoxCli;
+
+	@EJB
+	private FriendBO friendBO;
+
+	@EJB
+	private ParameterBO parameterBO;
+
 	@GET
-	@Secured
 	@Path("/GetExpLevelPointsMap")
 	@Produces(MediaType.APPLICATION_XML)
 	public ArrayOfInt getExpLevelPointsMap() {
@@ -115,7 +130,6 @@ public class DriverPersona {
 	}
 
 	@GET
-	@Secured
 	@Path("/GetPersonaInfo")
 	@Produces(MediaType.APPLICATION_XML)
 	public ProfileData getPersonaInfo(@QueryParam("personaId") Long personaId) {
@@ -157,8 +171,11 @@ public class DriverPersona {
 		}
 
 		PersonaEntity personaEntity = new PersonaEntity();
+		name = name.toUpperCase();
 		personaEntity.setName(name);
 		personaEntity.setIconIndex(iconIndex);
+		personaEntity.setCarSlots(parameterBO.getCarLimit(securityToken));
+
 		ProfileData persona = bo.createPersona(userId, personaEntity);
 
 		if (persona == null) {
@@ -176,6 +193,7 @@ public class DriverPersona {
 	@Produces(MediaType.APPLICATION_XML)
 	public String deletePersona(@QueryParam("personaId") Long personaId, @HeaderParam("securityToken") String securityToken) {
 		tokenSessionBo.verifyPersona(securityToken, personaId);
+		tokenSessionBo.setActivePersonaId(securityToken, 0L, true);
 		bo.deletePersona(personaId);
 		return "<long>0</long>";
 	}
@@ -193,7 +211,14 @@ public class DriverPersona {
 	@Secured
 	@Path("/UpdatePersonaPresence")
 	@Produces(MediaType.APPLICATION_XML)
-	public String updatePersonaPresence() {
+	public String updatePersonaPresence(@HeaderParam("securityToken") String securityToken, @QueryParam("presence") int presence) {
+		long activePersonaId = tokenSessionBo.getActivePersonaId(securityToken);
+		if (activePersonaId == 0L) {
+			return "";
+		}
+		PersonaEntity personaEntity = personaDAO.findById(activePersonaId);
+		tokenSessionBo.updatePersonaPresence(activePersonaId, presence);
+		friendBO.sendXmppPresenceToAllFriends(personaEntity, presence);
 		return "";
 	}
 

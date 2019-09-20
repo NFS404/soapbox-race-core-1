@@ -17,7 +17,6 @@ public class LoginAnnouncements {
 	private LoginAnnouncementBO bo;
 
 	@GET
-	@Secured
 	@Produces(MediaType.APPLICATION_XML)
 	public LoginAnnouncementsDefinition loginAnnouncements() {
 		return bo.getLoginAnnouncements();

@@ -1,6 +1,7 @@
 package com.soapboxrace.core.api.util;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 
 import javax.annotation.Priority;
 import javax.ejb.EJB;
@@ -35,6 +36,9 @@ public class LaunchFilter implements ContainerRequestFilter {
 		if (!isSpecificLaunhcerHeader(requestContext)) {
 			return;
 		}
+		if (!isMinLauncherVersion(requestContext)) {
+			return;
+		}
 		if (!isValidLauncher(requestContext)) {
 			return;
 		}
@@ -60,6 +64,21 @@ public class LaunchFilter implements ContainerRequestFilter {
 		return true;
 	}
 
+	private boolean isMinLauncherVersion(ContainerRequestContext requestContext) {
+		int intParam = parameterBO.getIntParam("LAUNCHER_MIN_VERSION");
+		if (intParam > 0) {
+			String headerString = requestContext.getHeaderString("X-GameLauncherVersion");
+			if (headerString == null || headerString.trim().isEmpty()) {
+				return false;
+			}
+			int valueOf = Integer.valueOf(headerString);
+			if (intParam > valueOf) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private boolean isValidLauncher(ContainerRequestContext requestContext) {
 		if (!parameterBO.getBoolParam("ENABLE_METONATOR_LAUNCHER_PROTECTION")) {
 			return true;
@@ -79,13 +98,16 @@ public class LaunchFilter implements ContainerRequestFilter {
 	}
 
 	private boolean isBanned(ContainerRequestContext requestContext) {
-		String hwid = requestContext.getHeaderString("X-HWID");
-		LoginStatusVO checkIsBanned = authenticationBO.checkIsBanned(hwid, sr.getParameter("email"));
-		if (checkIsBanned != null) {
-			requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity(checkIsBanned).build());
-			return true;
-		}
-		return false;
+	    
+	    // Сообщение о бане пользователю
+	    String banMessage = "You are banned up to %TIME% by reason: %REASON%";
+	    
+	    LoginStatusVO checkIsBanned = authenticationBO.checkIsBannedAccount(sr.getParameter("email"));
+	    if (checkIsBanned != null && checkIsBanned.getBan() != null) {
+	            checkIsBanned.setDescription(banMessage.replace("%TIME%",checkIsBanned.getBan().getExpires()).replace("%REASON%",checkIsBanned.getBan().getReason()));
+	            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity(checkIsBanned).build());
+	            return true;
+	    }
+	    return false;
 	}
-
 }

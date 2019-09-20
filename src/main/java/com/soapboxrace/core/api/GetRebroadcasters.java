@@ -10,7 +10,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
-import com.soapboxrace.core.api.util.Secured;
 import com.soapboxrace.core.bo.ParameterBO;
 import com.soapboxrace.jaxb.http.ArrayOfUdpRelayInfo;
 import com.soapboxrace.jaxb.http.UdpRelayInfo;
@@ -25,7 +24,6 @@ public class GetRebroadcasters {
 	private ParameterBO parameterBO;
 
 	@GET
-	@Secured
 	@Produces(MediaType.APPLICATION_XML)
 	public ArrayOfUdpRelayInfo getRebroadcasters() {
 		ArrayOfUdpRelayInfo arrayOfUdpRelayInfo = new ArrayOfUdpRelayInfo();

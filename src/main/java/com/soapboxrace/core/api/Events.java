@@ -44,7 +44,6 @@ public class Events {
 	private PersonaBO personaBO;
 
 	@GET
-	@Secured
 	@Path("/availableatlevel")
 	@Produces(MediaType.APPLICATION_XML)
 	public EventsPacket availableAtLevel(@HeaderParam("securityToken") String securityToken) {
@@ -99,7 +98,6 @@ public class Events {
 	}
 
 	@GET
-	@Secured
 	@Path("/gettreasurehunteventsession")
 	@Produces(MediaType.APPLICATION_XML)
 	public TreasureHuntEventSession getTreasureHuntEventSession(@HeaderParam("securityToken") String securityToken) {

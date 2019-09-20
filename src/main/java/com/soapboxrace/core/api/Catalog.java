@@ -30,7 +30,6 @@ public class Catalog {
 	private TokenSessionBO tokenBO;
 
 	@GET
-	@Secured
 	@Path("/productsInCategory")
 	@Produces(MediaType.APPLICATION_XML)
 	public ArrayOfProductTrans productsInCategory(@HeaderParam("securityToken") String securityToken, @QueryParam("categoryName") String categoryName,

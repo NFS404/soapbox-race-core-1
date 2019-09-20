@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
 import com.soapboxrace.core.bo.TokenSessionBO;
+import com.soapboxrace.core.dao.UserDAO;
 
 @Secured
 @Provider
@@ -20,6 +21,9 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
 	@EJB
 	private TokenSessionBO tokenSessionBO;
+	
+	@EJB
+	private UserDAO userDAO;
 
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException {

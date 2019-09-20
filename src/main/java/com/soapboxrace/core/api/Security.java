@@ -14,7 +14,6 @@ import com.soapboxrace.jaxb.http.FraudConfig;
 public class Security {
 
 	@GET
-	@Secured
 	@Path("/fraudConfig")
 	@Produces(MediaType.APPLICATION_XML)
 	public FraudConfig fraudConfig(@HeaderParam("userId") Long userId) {

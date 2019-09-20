@@ -60,6 +60,7 @@ public class EventEntity {
 	private float rank8CashMultiplier;
 	private float minTopSpeedTrigger;
 	private long legitTime;
+	private boolean searchAvailable = true;
 
 	public int getId() {
 		return id;
@@ -379,6 +380,14 @@ public class EventEntity {
 
 	public void setCarClassHash(int carClassHash) {
 		this.carClassHash = carClassHash;
+	}
+
+	public boolean isSearchAvailable() {
+		return searchAvailable;
+	}
+
+	public void setSearchAvailable(boolean searchAvailable) {
+		this.searchAvailable = searchAvailable;
 	}
 
 }

@@ -63,6 +63,7 @@ public class ProductEntity {
 	private Integer accel = 0;
 	private Integer handling = 0;
 	private Float skillValue;
+	private Integer stars = 0;
 
 	public Long getId() {
 		return id;
@@ -302,6 +303,14 @@ public class ProductEntity {
 
 	public void setSkillValue(Float skillValue) {
 		this.skillValue = skillValue;
+	}
+
+	public Integer getStars() {
+		return stars;
+	}
+
+	public void setStars(Integer stars) {
+		this.stars = stars;
 	}
 
 }

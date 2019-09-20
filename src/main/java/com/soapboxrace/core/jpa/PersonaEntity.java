@@ -2,9 +2,12 @@
 package com.soapboxrace.core.jpa;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,6 +16,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -38,9 +42,14 @@ public class PersonaEntity {
 	private int repAtCurrentLevel;
 	private int score;
 	private int curCarIndex = 0;
+	private int carSlots = 6;
+
 	@ManyToOne
 	@JoinColumn(name = "USERID", referencedColumnName = "ID", foreignKey = @ForeignKey(name = "FK_PERSONA_USER"))
 	private UserEntity user;
+
+	@OneToMany(mappedBy = "persona", targetEntity = BadgePersonaEntity.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<BadgePersonaEntity> listOfBadges;
 
 	@Column(name = "created")
 	private LocalDateTime created;
@@ -164,4 +173,21 @@ public class PersonaEntity {
 	public void setCreated(LocalDateTime created) {
 		this.created = created;
 	}
+
+	public int getCarSlots() {
+		return carSlots;
+	}
+
+	public void setCarSlots(int carSlots) {
+		this.carSlots = carSlots;
+	}
+
+	public List<BadgePersonaEntity> getListOfBadges() {
+		return listOfBadges;
+	}
+
+	public void setListOfBadges(List<BadgePersonaEntity> listOfBadges) {
+		this.listOfBadges = listOfBadges;
+	}
+
 }

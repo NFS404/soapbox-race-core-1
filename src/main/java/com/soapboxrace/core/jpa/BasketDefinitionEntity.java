@@ -3,7 +3,6 @@ package com.soapboxrace.core.jpa;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.Table;
 
 @Entity
@@ -13,7 +12,6 @@ public class BasketDefinitionEntity {
 	@Id
 	private String productId;
 
-	@Lob
 	@Column(length = 65535)
 	private String ownedCarTrans;
 

@@ -35,6 +35,8 @@ public class ServerInfoEntity {
 	private String ownerList;
 	private Integer numberOfRegistered;
 	private String allowedCountries;
+	private String newsUrl;
+	private Boolean rwacAllow;
 
 	@Convert(converter = SceneryGroupConverter.class)
 	private List<String> activatedHolidaySceneryGroups;
@@ -49,7 +51,7 @@ public class ServerInfoEntity {
 	@Transient
 	private String serverVersion;
 	@Transient
-	private boolean authservEnabled = false;
+	private Integer maxOnlinePlayers = 0;
 
 	public String getMessageSrv() {
 		return messageSrv;
@@ -163,10 +165,6 @@ public class ServerInfoEntity {
 		this.serverVersion = serverVersion;
 	}
 
-	public boolean isAuthservEnabled() { return authservEnabled; }
-
-	public void setAuthservEnabled(boolean authservEnabled) { this.authservEnabled = authservEnabled; }
-
 	public void setActivatedHolidaySceneryGroups(List<String> activatedHolidaySceneryGroups) {
 		this.activatedHolidaySceneryGroups = activatedHolidaySceneryGroups;
 	}
@@ -189,6 +187,30 @@ public class ServerInfoEntity {
 
 	public void setAllowedCountries(String allowedCountries) {
 		this.allowedCountries = allowedCountries;
+	}
+	
+	public Boolean getRWACAllow() {
+		return rwacAllow;
+	}
+
+	public void setRWACAllow(Boolean rwacAllow) {
+		this.rwacAllow = rwacAllow;
+	}
+
+	public String getNewsUrl() {
+		return newsUrl;
+	}
+
+	public void setNewsUrl(String newsUrl) {
+		this.newsUrl = newsUrl;
+	}
+
+	public Integer getMaxOnlinePlayers() {
+		return maxOnlinePlayers;
+	}
+
+	public void setMaxOnlinePlayers(Integer maxOnlinePlayers) {
+		this.maxOnlinePlayers = maxOnlinePlayers;
 	}
 
 }

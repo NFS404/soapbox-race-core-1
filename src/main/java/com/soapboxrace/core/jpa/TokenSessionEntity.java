@@ -4,6 +4,8 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -13,20 +15,30 @@ import javax.persistence.Table;
 @Table(name = "TOKEN_SESSION")
 @NamedQueries({ //
 		@NamedQuery(name = "TokenSessionEntity.findByUserId", query = "SELECT obj FROM TokenSessionEntity obj WHERE obj.userId = :userId"), //
+		@NamedQuery(name = "TokenSessionEntity.findBySecurityToken", query = "SELECT obj FROM TokenSessionEntity obj WHERE obj.securityToken = :securityToken"), //
 		@NamedQuery(name = "TokenSessionEntity.deleteByUserId", query = "DELETE FROM TokenSessionEntity obj WHERE obj.userId = :userId"), //
 		@NamedQuery(name = "TokenSessionEntity.updateRelayCrytoTicket", //
-				query = "UPDATE TokenSessionEntity obj " //
+				query = "UPDATE TokenSessionEntity obj " // 
 						+ "SET obj.relayCryptoTicket = :relayCryptoTicket WHERE obj.activePersonaId = :personaId"), //
 		@NamedQuery(name = "TokenSessionEntity.updateLobbyId", //
-				query = "UPDATE TokenSessionEntity obj " //
-						+ "SET obj.activeLobbyId = :activeLobbyId WHERE obj.activePersonaId = :personaId") //
+				query = "UPDATE TokenSessionEntity obj " 
+						+ "SET obj.activeLobbyId = :activeLobbyId WHERE obj.activePersonaId = :personaId"), //
+		@NamedQuery(name = "TokenSessionEntity.getUsersOnlineCount", query = "SELECT Count(obj) FROM TokenSessionEntity obj WHERE obj.expirationDate >= NOW() AND obj.isLoggedIn = true"),
+		@NamedQuery(name = "TokenSessionEntity.updatePersonaPresence", //
+				query = "UPDATE TokenSessionEntity obj " // 
+						+ "SET obj.personaPresence = :personaPresence WHERE obj.activePersonaId = :personaId") //
 })
 public class TokenSessionEntity {
 
 	@Id
 	@Column(name = "ID", nullable = false)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(unique = true)
 	private String securityToken;
 
+	@Column(unique = true)
 	private Long userId;
 
 	private Date expirationDate;
@@ -40,6 +52,10 @@ public class TokenSessionEntity {
 	private boolean premium = false;
 
 	private String clientHostIp;
+	
+	private boolean isLoggedIn;
+
+	private int personaPresence;
 
 	public String getSecurityToken() {
 		return securityToken;
@@ -103,6 +119,30 @@ public class TokenSessionEntity {
 
 	public void setClientHostIp(String clientHostIp) {
 		this.clientHostIp = clientHostIp;
+	}
+
+	public int getPersonaPresence() {
+		return personaPresence;
+	}
+
+	public void setPersonaPresence(int personaPresence) {
+		this.personaPresence = personaPresence;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+	
+	public boolean getIsLoggedIn() {
+		return isLoggedIn;
+	}
+
+	public void setIsLoggedIn(boolean isLoggedIn) {
+		this.isLoggedIn = isLoggedIn;
 	}
 
 }

@@ -20,10 +20,17 @@ public class AchievementDefinitionEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
-	private int id;
+	private Long id;
 
-	@Column(name = "friendlyIdentifier")
-	private String friendlyIdentifier;
+	@OneToOne
+	@JoinColumn(name = "badgeDefinitionId", referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_ACHDEF_BADGEDEF"))
+	private BadgeDefinitionEntity badgeDefinition;
+
+	@Column(name = "canProgress")
+	private boolean canProgress;
+
+	@Column(name = "currentValue")
+	private Long currentValue;
 
 	@Column(name = "isVisible")
 	private boolean isVisible;
@@ -31,30 +38,21 @@ public class AchievementDefinitionEntity {
 	@Column(name = "progressText")
 	private String progressText;
 
-	@JoinColumn(name = "badgeDefinitionId", referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_ACHDEF_BADGEDEF"))
-	@OneToOne
-	private BadgeDefinitionEntity badgeDefinition;
-
 	@OneToMany(mappedBy = "achievementDefinition", fetch = FetchType.EAGER, targetEntity = AchievementRankEntity.class)
 	private List<AchievementRankEntity> ranks;
 
 	@Column(name = "statConversion")
 	private String statConversion;
 
-	public int getId() {
+	@Column(name = "friendlyidentifier")
+	private String friendlyidentifier;
+	
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getFriendlyIdentifier() {
-		return friendlyIdentifier;
-	}
-
-	public void setFriendlyIdentifier(String friendlyIdentifier) {
-		this.friendlyIdentifier = friendlyIdentifier;
 	}
 
 	public boolean isVisible() {
@@ -97,10 +95,28 @@ public class AchievementDefinitionEntity {
 		this.statConversion = statConversion;
 	}
 
-	public Long getMaximumValue() {
-		if (ranks.isEmpty())
-			throw new IllegalStateException("This achievement (" + friendlyIdentifier + ") has no ranks!");
-
-		return ranks.get(ranks.size() - 1).getThresholdValue();
+	public boolean isCanProgress() {
+		return canProgress;
 	}
+
+	public void setCanProgress(boolean canProgress) {
+		this.canProgress = canProgress;
+	}
+
+	public Long getCurrentValue() {
+		return currentValue;
+	}
+
+	public void setCurrentValue(Long currentValue) {
+		this.currentValue = currentValue;
+	}
+
+	public String getFriendlyidentifier() {
+		return friendlyidentifier;
+	}
+
+	public void setFriendlyidentifier(String friendlyidentifier) {
+		this.friendlyidentifier = friendlyidentifier;
+	}
+	
 }

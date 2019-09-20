@@ -1,5 +1,7 @@
 package com.soapboxrace.core.jpa;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -10,8 +12,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.soapboxrace.jaxb.http.AchievementRankPacket;
-
 @Entity
 @Table(name = "ACHIEVEMENT_RANK")
 public class AchievementRankEntity {
@@ -19,11 +19,10 @@ public class AchievementRankEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
-	private int id;
+	private Long id;
 
-	@JoinColumn(name = "achievementId", referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_ACHRANK_ACHDEF"))
-	@ManyToOne
-	private AchievementDefinitionEntity achievementDefinition;
+	@Column(name = "achievedOn")
+	private Date achievedOn;
 
 	@Column(name = "isRare")
 	private boolean isRare;
@@ -46,46 +45,42 @@ public class AchievementRankEntity {
 	@Column(name = "rewardVisualStyle")
 	private String rewardVisualStyle;
 
+	@Column(name = "state")
+	private String state;
+
 	@Column(name = "thresholdValue")
 	private Long thresholdValue;
 
-	public AchievementRankPacket toBasePacket() {
-		AchievementRankPacket packet = new AchievementRankPacket();
-		packet.setAchievementRankId(id);
-		packet.setIsRare(isRare);
-		packet.setRarity(getRarity());
-		packet.setRank(rank);
-		packet.setThresholdValue(thresholdValue);
-		packet.setRewardDescription(rewardDescription);
-		packet.setRewardType(rewardType);
-		packet.setRewardVisualStyle(rewardVisualStyle);
-		packet.setPoints(points);
+	private String rewardText;
 
-		return packet;
-	}
+	private short numberOfRewards = 1;
 
-	public int getId() {
+	@ManyToOne
+	@JoinColumn(name = "achievementId", referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_ACHRANK_ACHDEF"))
+	private AchievementDefinitionEntity achievementDefinition;
+
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
-	public AchievementDefinitionEntity getAchievementDefinition() {
-		return achievementDefinition;
+	public Date getAchievedOn() {
+		return achievedOn;
 	}
 
-	public void setAchievementDefinition(AchievementDefinitionEntity achievementDefinition) {
-		this.achievementDefinition = achievementDefinition;
+	public void setAchievedOn(Date achievedOn) {
+		this.achievedOn = achievedOn;
 	}
 
 	public boolean isRare() {
 		return isRare;
 	}
 
-	public void setRare(boolean rare) {
-		isRare = rare;
+	public void setRare(boolean isRare) {
+		this.isRare = isRare;
 	}
 
 	public short getPoints() {
@@ -136,6 +131,14 @@ public class AchievementRankEntity {
 		this.rewardVisualStyle = rewardVisualStyle;
 	}
 
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
 	public Long getThresholdValue() {
 		return thresholdValue;
 	}
@@ -143,4 +146,29 @@ public class AchievementRankEntity {
 	public void setThresholdValue(Long thresholdValue) {
 		this.thresholdValue = thresholdValue;
 	}
+
+	public AchievementDefinitionEntity getAchievementDefinition() {
+		return achievementDefinition;
+	}
+
+	public void setAchievementDefinition(AchievementDefinitionEntity achievementDefinition) {
+		this.achievementDefinition = achievementDefinition;
+	}
+
+	public String getRewardText() {
+		return rewardText;
+	}
+
+	public void setRewardText(String rewardText) {
+		this.rewardText = rewardText;
+	}
+
+	public short getNumberOfRewards() {
+		return numberOfRewards;
+	}
+
+	public void setNumberOfRewards(short numberOfRewards) {
+		this.numberOfRewards = numberOfRewards;
+	}
+
 }

@@ -1,6 +1,7 @@
 package com.soapboxrace.core.dao;
 
 import java.util.List;
+import java.util.Collection;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;

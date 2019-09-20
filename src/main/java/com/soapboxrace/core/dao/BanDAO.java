@@ -31,6 +31,7 @@ public class BanDAO extends BaseDAO<BanEntity> {
 	}
 
 	public BanEntity findByEmail(String email) {
+		email = email.toLowerCase();
 		return findByTypeAndData(BanEntity.BanType.EMAIL_BAN, email);
 	}
 

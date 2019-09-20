@@ -1,5 +1,7 @@
 package com.soapboxrace.core.dao;
 
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -17,22 +19,30 @@ public class TokenSessionDAO extends BaseDAO<TokenSessionEntity> {
 		this.entityManager = entityManager;
 	}
 
-	public TokenSessionEntity findById(String securityToken) {
-		return entityManager.find(TokenSessionEntity.class, securityToken);
+	public TokenSessionEntity findBySecurityToken(String securityToken) {
+		TypedQuery<TokenSessionEntity> query = entityManager.createNamedQuery("TokenSessionEntity.findBySecurityToken", TokenSessionEntity.class);
+		query.setParameter("securityToken", securityToken);
+		List<TokenSessionEntity> resultList = query.getResultList();
+		if (resultList.isEmpty()) {
+			return null;
+		}
+		return resultList.get(0);
 	}
 
 	public TokenSessionEntity findByUserId(Long userId) {
 		TypedQuery<TokenSessionEntity> query = entityManager.createNamedQuery("TokenSessionEntity.findByUserId", TokenSessionEntity.class);
 		query.setParameter("userId", userId);
-		return query.getSingleResult();
+		List<TokenSessionEntity> resultList = query.getResultList();
+		if (resultList.isEmpty()) {
+			return null;
+		}
+		return resultList.get(0);
 	}
 
-	public void deleteByUserId(Long userId) {
-		Query query = entityManager.createNamedQuery("TokenSessionEntity.deleteByUserId");
-		query.setParameter("userId", userId);
-		query.executeUpdate();
+	public int getUsersOnlineCount() {
+		return ((Number)entityManager.createNamedQuery("TokenSessionEntity.getUsersOnlineCount").getSingleResult()).intValue();
 	}
-
+	
 	public void updateRelayCrytoTicketByPersonaId(Long personaId, String relayCryptoTicket) {
 		Query query = entityManager.createNamedQuery("TokenSessionEntity.updateRelayCrytoTicket");
 		query.setParameter("personaId", personaId);
@@ -45,6 +55,23 @@ public class TokenSessionDAO extends BaseDAO<TokenSessionEntity> {
 		query.setParameter("personaId", personaId);
 		query.setParameter("activeLobbyId", lobbyId);
 		query.executeUpdate();
+	}
+
+	public void updatePersonaPresence(Long personaId, Integer personaPresence) {
+		Query query = entityManager.createNamedQuery("TokenSessionEntity.updatePersonaPresence");
+		query.setParameter("personaId", personaId);
+		query.setParameter("personaPresence", personaPresence);
+		query.executeUpdate();
+	}
+
+	public List<TokenSessionEntity> findByActive() {
+		StringBuilder queryStr = new StringBuilder();
+		queryStr.append("SELECT obj FROM TokenSessionEntity obj ");
+		queryStr.append(" WHERE obj.activePersonaId <> 0 ");
+		queryStr.append(" AND obj.personaPresence <> 0 ");
+		queryStr.append(" AND obj.expirationDate > current_time()");
+		TypedQuery<TokenSessionEntity> query = entityManager.createQuery(queryStr.toString(), TokenSessionEntity.class);
+		return query.getResultList();
 	}
 
 }

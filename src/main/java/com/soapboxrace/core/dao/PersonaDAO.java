@@ -23,11 +23,19 @@ public class PersonaDAO extends BaseDAO<PersonaEntity> {
 	}
 
 	public PersonaEntity findByName(String name) {
+		name = name.toUpperCase();
 		TypedQuery<PersonaEntity> query = entityManager.createNamedQuery("PersonaEntity.findByName", PersonaEntity.class);
 		query.setParameter("name", name);
-		
+
 		List<PersonaEntity> resultList = query.getResultList();
 		return !resultList.isEmpty() ? resultList.get(0) : null;
+	}
+
+	public List<PersonaEntity> getAllPaged(int offset, int max) {
+		TypedQuery<PersonaEntity> query = entityManager.createQuery("SELECT obj FROM PersonaEntity obj ", PersonaEntity.class);
+		query.setMaxResults(max);
+		query.setFirstResult(offset);
+		return query.getResultList();
 	}
 
 }

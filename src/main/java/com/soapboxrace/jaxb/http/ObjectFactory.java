@@ -36,6 +36,7 @@ public class ObjectFactory {
     private final static QName _TeamEscapeEventResult_QNAME = new QName("", "TeamEscapeEventResult");
     private final static QName _LobbyEntrantRemoved_QNAME = new QName("", "LobbyEntrantRemoved");
     private final static QName _ArrayOfLevelGiftDefinition_QNAME = new QName("", "ArrayOfLevelGiftDefinition");
+    private final static QName _FriendResult_QNAME = new QName("", "FriendResult");
     private final static QName _SocialSettings_QNAME = new QName("", "SocialSettings");
     private final static QName _LobbyInfo_QNAME = new QName("", "LobbyInfo");
     private final static QName _RouteEntrantResult_QNAME = new QName("", "RouteEntrantResult");
@@ -190,6 +191,14 @@ public class ObjectFactory {
      */
     public ArrayOfLevelGiftDefinition createArrayOfLevelGiftDefinition() {
         return new ArrayOfLevelGiftDefinition();
+    }
+
+    /**
+     * Create an instance of {@link FriendResult }
+     * 
+     */
+    public FriendResult createFriendResult() {
+        return new FriendResult();
     }
 
     /**
@@ -1258,6 +1267,15 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "", name = "ArrayOfLevelGiftDefinition")
     public JAXBElement<ArrayOfLevelGiftDefinition> createArrayOfLevelGiftDefinition(ArrayOfLevelGiftDefinition value) {
         return new JAXBElement<ArrayOfLevelGiftDefinition>(_ArrayOfLevelGiftDefinition_QNAME, ArrayOfLevelGiftDefinition.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link FriendResult }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "", name = "FriendResult")
+    public JAXBElement<FriendResult> createFriendResult(FriendResult value) {
+        return new JAXBElement<FriendResult>(_FriendResult_QNAME, FriendResult.class, null, value);
     }
 
     /**

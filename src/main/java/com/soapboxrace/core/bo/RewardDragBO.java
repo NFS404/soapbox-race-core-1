@@ -11,6 +11,7 @@ import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.SkillModRewardType;
 import com.soapboxrace.jaxb.http.Accolades;
 import com.soapboxrace.jaxb.http.DragArbitrationPacket;
+import com.soapboxrace.jaxb.http.ArrayOfDragEntrantResult;
 
 @Stateless
 public class RewardDragBO extends RewardBO {
@@ -21,15 +22,14 @@ public class RewardDragBO extends RewardBO {
 	@EJB
 	private LegitRaceBO legitRaceBO;
 
-	public Accolades getDragAccolades(Long activePersonaId, DragArbitrationPacket dragArbitrationPacket, EventSessionEntity eventSessionEntity) {
+	public Accolades getDragAccolades(Long activePersonaId, DragArbitrationPacket dragArbitrationPacket, EventSessionEntity eventSessionEntity, ArrayOfDragEntrantResult arrayOfDragEntrantResult) {
 		if (!legitRaceBO.isLegit(activePersonaId, dragArbitrationPacket, eventSessionEntity)) {
 			return new Accolades();
 		}
 		EventEntity eventEntity = eventSessionEntity.getEvent();
 		PersonaEntity personaEntity = personaDao.findById(activePersonaId);
 		RewardVO rewardVO = getRewardVO(personaEntity);
-
-		setBaseReward(personaEntity, eventEntity, dragArbitrationPacket, rewardVO);
+		setBaseRewardDrag(personaEntity, eventEntity, dragArbitrationPacket, rewardVO, arrayOfDragEntrantResult);
 		setRankReward(eventEntity, dragArbitrationPacket, rewardVO);
 		setPerfectStartReward(eventEntity, dragArbitrationPacket.getPerfectStart(), rewardVO);
 		setTopSpeedReward(eventEntity, dragArbitrationPacket.getTopSpeed(), rewardVO);

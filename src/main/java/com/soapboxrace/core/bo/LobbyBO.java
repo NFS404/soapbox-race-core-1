@@ -194,7 +194,7 @@ public class LobbyBO {
 		lobbyCountdown.setLobbyId(lobbyInviteId);
 		lobbyCountdown.setEventId(eventId);
 		lobbyCountdown.setLobbyCountdownInMilliseconds(lobbyEntity.getLobbyCountdownInMilliseconds());
-		lobbyCountdown.setLobbyStuckDurationInMilliseconds(10000);
+		lobbyCountdown.setLobbyStuckDurationInMilliseconds(7500);
 
 		ArrayOfLobbyEntrantInfo arrayOfLobbyEntrantInfo = new ArrayOfLobbyEntrantInfo();
 		List<LobbyEntrantInfo> lobbyEntrantInfo = arrayOfLobbyEntrantInfo.getLobbyEntrantInfo();
@@ -296,7 +296,7 @@ public class LobbyBO {
 
 		public void run() {
 			try {
-				Thread.sleep(60000);
+				Thread.sleep(45000);
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
 			}

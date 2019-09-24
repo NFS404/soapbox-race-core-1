@@ -18,7 +18,9 @@ import com.soapboxrace.core.jpa.SkillModPartEntity;
 import com.soapboxrace.core.jpa.SkillModRewardType;
 import com.soapboxrace.jaxb.http.Accolades;
 import com.soapboxrace.jaxb.http.ArbitrationPacket;
+import com.soapboxrace.jaxb.http.ArrayOfDragEntrantResult;
 import com.soapboxrace.jaxb.http.ArrayOfLuckyDrawItem;
+import com.soapboxrace.jaxb.http.ArrayOfRouteEntrantResult;
 import com.soapboxrace.jaxb.http.EnumRewardCategory;
 import com.soapboxrace.jaxb.http.EnumRewardType;
 import com.soapboxrace.jaxb.http.LuckyDrawInfo;
@@ -238,6 +240,46 @@ public class RewardBO {
 	public void setBaseReward(PersonaEntity personaEntity, EventEntity eventEntity, ArbitrationPacket arbitrationPacket, RewardVO rewardVO) {
 		Float baseRep = (float) eventEntity.getBaseRepReward();
 		Float baseCash = (float) eventEntity.getBaseCashReward();
+		Float playerLevelRepConst = getPlayerLevelConst(personaEntity.getLevel(), eventEntity.getLevelRepRewardMultiplier());
+		Float playerLevelCashConst = getPlayerLevelConst(personaEntity.getLevel(), eventEntity.getLevelCashRewardMultiplier());
+		Float timeConst = getTimeConst(eventEntity.getLegitTime(), arbitrationPacket.getEventDurationInMilliseconds());
+		rewardVO.setBaseRep(getBaseReward(baseRep, playerLevelRepConst, timeConst));
+		rewardVO.setBaseCash(getBaseReward(baseCash, playerLevelCashConst, timeConst));
+	}
+	
+	public void setBaseRewardDrag(PersonaEntity personaEntity, EventEntity eventEntity, ArbitrationPacket arbitrationPacket, RewardVO rewardVO, ArrayOfDragEntrantResult arrayOfDragEntrantResult) {
+		Float baseRep = (float) 0;
+		Float baseCash = (float) 0;
+		
+		if (arrayOfDragEntrantResult.getDragEntrantResult().size() < 2) {
+			baseRep = (float) (eventEntity.getBaseRepReward() * parameterBO.getFloatParam("SP_REWARD_DRAG_MULTIPLIER"));
+			baseCash = (float) (eventEntity.getBaseCashReward() * parameterBO.getFloatParam("SP_REWARD_DRAG_MULTIPLIER"));
+		}
+		else {
+			baseRep = (float) eventEntity.getBaseRepReward();
+			baseCash = (float) eventEntity.getBaseCashReward();
+		}
+		
+		Float playerLevelRepConst = getPlayerLevelConst(personaEntity.getLevel(), eventEntity.getLevelRepRewardMultiplier());
+		Float playerLevelCashConst = getPlayerLevelConst(personaEntity.getLevel(), eventEntity.getLevelCashRewardMultiplier());
+		Float timeConst = getTimeConst(eventEntity.getLegitTime(), arbitrationPacket.getEventDurationInMilliseconds());
+		rewardVO.setBaseRep(getBaseReward(baseRep, playerLevelRepConst, timeConst));
+		rewardVO.setBaseCash(getBaseReward(baseCash, playerLevelCashConst, timeConst));
+	}
+	
+	public void setBaseRewardRace(PersonaEntity personaEntity, EventEntity eventEntity, ArbitrationPacket arbitrationPacket, RewardVO rewardVO, ArrayOfRouteEntrantResult arrayOfRouteEntrantResult) {
+		Float baseRep = (float) 0;
+		Float baseCash = (float) 0;
+		
+		if (arrayOfRouteEntrantResult.getRouteEntrantResult().size() < 2) {
+			baseRep = (float) (eventEntity.getBaseRepReward() * parameterBO.getFloatParam("SP_REWARD_RACE_MULTIPLIER"));
+			baseCash = (float) (eventEntity.getBaseCashReward() * parameterBO.getFloatParam("SP_REWARD_RACE_MULTIPLIER"));
+		}
+		else {
+			baseRep = (float) eventEntity.getBaseRepReward();
+			baseCash = (float) eventEntity.getBaseCashReward();
+		}
+		
 		Float playerLevelRepConst = getPlayerLevelConst(personaEntity.getLevel(), eventEntity.getLevelRepRewardMultiplier());
 		Float playerLevelCashConst = getPlayerLevelConst(personaEntity.getLevel(), eventEntity.getLevelCashRewardMultiplier());
 		Float timeConst = getTimeConst(eventEntity.getLegitTime(), arbitrationPacket.getEventDurationInMilliseconds());

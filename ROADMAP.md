@@ -12,6 +12,7 @@
 
 * **#Sparkle** (Commerce / Collectibles)
 * **#Loutish** (Gameplay / Collectibles)
+* **#Sidewalk** (Gameplay / Improvement)
 
 ## Concept Stage
 

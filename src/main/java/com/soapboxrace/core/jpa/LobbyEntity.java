@@ -112,7 +112,7 @@ public class LobbyEntity {
 	private String carDivision;
 
 	@Transient
-	private Long lobbyCountdownInMilliseconds = 60000L;
+	private Long lobbyCountdownInMilliseconds = 45000L;
 
 	public Long getId() {
 		return id;
@@ -181,7 +181,7 @@ public class LobbyEntity {
 		if (lobbyDateTimeStart != null) {
 			Date now = new Date();
 			Long time = now.getTime() - lobbyDateTimeStart.getTime();
-			time = 60000L - time;
+			time = 45000L - time;
 			return time.intValue();
 		}
 		return lobbyCountdownInMilliseconds.intValue();

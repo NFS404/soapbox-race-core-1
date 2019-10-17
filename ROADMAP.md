@@ -13,7 +13,7 @@
 
 * **#Sparkle** (Commerce / Collectibles)
 * **#Loutish** (Gameplay / Collectibles)
-* **#Sidewalk** (Gameplay / Improvement)
+* **#Latch** (Gameplay / Feature)
 
 ## DataBase-side only
 

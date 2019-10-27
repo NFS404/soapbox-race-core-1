@@ -1,6 +1,5 @@
 ## Able to do now
 
-* New ban system for moderators (_Use Apex's one?_)
 * REST API & Leaderboards system
 * Use the car divisions for something (_Better race matchmaking?_)
 * More restored achievements 
